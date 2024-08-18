@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rune Puzzle - Open the Suitcase</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000000; /* Чёрный фон */
+            color: #FFFFFF; /* Белый текст */
+            font-size: 2.5vw; /* Адаптивный размер текста */
+        }
+        .rune {
+            width: 15vw; /* Адаптивный размер иконок */
+            height: 15vw; /* Адаптивный размер иконок */
+            margin: 2vh;
+            background-size: contain;
+            background-repeat: no-repeat;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            background-image: url('https://i.imgur.com/3dFGw98.png'); /* Изначально руна огня */
+        }
+        .rune:active {
+            transform: scale(0.9);
+            box-shadow: 0 0 10px #FFF;
+        }
+        #solution {
+            display: none;
+            margin-top: 5vh;
+            font-size: 3vw; /* Адаптивный размер текста */
+            font-weight: bold;
+            color: #FFFFFF; /* Белый текст */
+        }
+        #error-message {
+            display: none;
+            margin-top: 5vh;
+            font-size: 2.5vw; /* Адаптивный размер текста */
+            color: #FF0000; /* Красный текст */
+        }
+        button {
+            background-color: #333333; /* Тёмно-серый фон для кнопки */
+            color: #FFFFFF; /* Белый текст на кнопке */
+            padding: 1.5vw 3vw; /* Адаптивный размер кнопки */
+            border: none;
+            cursor: pointer;
+            font-size: 2.5vw; /* Адаптивный размер текста кнопки */
+        }
+        button:hover {
+            background-color: #555555; /* Более светлый серый при наведении */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="rune1" class="rune"></div>
+    <div id="rune2" class="rune"></div>
+    <div id="rune3" class="rune"></div>
+    <div id="rune4" class="rune"></div>
+
+    <button id="check">Открыть замок</button>
+
+    <div id="solution">Чемодан открыт! Слово: Альфа</div>
+    <div id="error-message">Замок не поддается</div>
+
+    <script>
+        const runes = [
+            'https://i.imgur.com/ligU60B.png',  // Вода (Water)
+            'https://i.imgur.com/3dFGw98.png',  // Огонь (Fire)
+            'https://i.imgur.com/xpbjM4j.png',  // Воздух (Air)
+            'https://i.imgur.com/4gAfIVv.png'   // Земля (Earth)
+        ];
+
+        const correctSequence = [0, 1, 2, 3]; // Соответствует последовательности: Вода, Огонь, Воздух, Земля
+        let indexes = [1, 1, 1, 1]; // Изначально все руны - Огонь (индекс 1)
+
+        function updateRunes() {
+            document.getElementById('rune1').style.backgroundImage = `url(${runes[indexes[0]]})`;
+            document.getElementById('rune2').style.backgroundImage = `url(${runes[indexes[1]]})`;
+            document.getElementById('rune3').style.backgroundImage = `url(${runes[indexes[2]]})`;
+            document.getElementById('rune4').style.backgroundImage = `url(${runes[indexes[3]]})`;
+        }
+
+        document.getElementById('rune1').addEventListener('click', () => {
+            indexes[0] = (indexes[0] + 1) % runes.length;
+            updateRunes();
+        });
+
+        document.getElementById('rune2').addEventListener('click', () => {
+            indexes[1] = (indexes[1] + 1) % runes.length;
+            updateRunes();
+        });
+
+        document.getElementById('rune3').addEventListener('click', () => {
+            indexes[2] = (indexes[2] + 1) % runes.length;
+            updateRunes();
+        });
+
+        document.getElementById('rune4').addEventListener('click', () => {
+            indexes[3] = (indexes[3] + 1) % runes.length;
+            updateRunes();
+        });
+
+        document.getElementById('check').addEventListener('click', () => {
+            if (indexes.join('') === correctSequence.join('')) {
+                document.getElementById('solution').style.display = 'block';
+                document.getElementById('error-message').style.display = 'none';
+            } else {
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('check').style.display = 'none';
+            }
+        });
+
+        updateRunes();
+    </script>
+
+</body>
+</html>
