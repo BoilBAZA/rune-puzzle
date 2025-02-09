@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Создание персонажа для настольной игры</title>
-  <!-- Подключаем шрифт Brahms Gotisch Cyrillic (скачайте файлы шрифта и разместите их в проекте) -->
+  <title>Невидимая Грань</title>
+  <!-- Подключаем шрифт Brahms Gotisch Cyrillic (убедитесь, что файлы шрифта находятся в том же каталоге) -->
   <style>
     @font-face {
       font-family: 'Brahms Gotisch Cyrillic';
@@ -13,19 +13,17 @@
       font-style: normal;
     }
   </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <style>
-    /* Контейнер для центрирования контента с «средневековым» оформлением */
+    /* Контейнер для центрирования контента */
     .container {
       max-width: 800px;
       margin: 30px auto;
       padding: 20px;
-      background: linear-gradient(135deg, #3c3c3c, #1a1a1a);
-      border: 3px solid #8B4513; /* коричневый, напоминающий дерево */
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(139, 69, 19, 0.7);
+      background: #000;
+      border: 2px solid #fff;
+      border-radius: 5px;
     }
-    /* Основные стили для темного оформления */
+    /* Основные стили – чистые черно-белые тона */
     body {
       font-family: Arial, sans-serif;
       background-color: #000;
@@ -41,9 +39,9 @@
     .tab {
       display: none;
       padding: 20px;
-      background: #222;
+      background: #000;
       margin-bottom: 20px;
-      border: 2px solid #8B4513;
+      border: 1px solid #fff;
       border-radius: 5px;
     }
     .tab.active {
@@ -56,15 +54,15 @@
     .tabs-navigation button {
       padding: 10px 15px;
       margin: 0 5px;
-      border: none;
-      background-color: #5a3e2b;
+      border: 1px solid #fff;
+      background-color: #000;
       color: #fff;
       border-radius: 5px;
       cursor: pointer;
-      box-shadow: 0 0 5px rgba(139,69,19,0.8);
     }
     .tabs-navigation button.active {
-      background-color: #8B4513;
+      background-color: #fff;
+      color: #000;
     }
     label {
       display: block;
@@ -79,23 +77,22 @@
       padding: 8px;
       margin-top: 5px;
       box-sizing: border-box;
-      background-color: #333;
+      background-color: #222;
       color: #fff;
-      border: 1px solid #555;
+      border: 1px solid #fff;
       border-radius: 3px;
       display: block;
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0 auto;
     }
     /* Скрываем стандартный input для загрузки файла */
     input[type="file"] {
       display: none;
     }
     .character-card {
-      border: 2px solid #8B4513;
+      border: 1px solid #fff;
       border-radius: 5px;
       padding: 20px;
-      background-color: #222;
+      background-color: #000;
       text-align: center;
     }
     .navigation-buttons {
@@ -105,12 +102,11 @@
     .navigation-buttons button {
       padding: 10px 15px;
       margin: 5px;
-      border: none;
+      border: 1px solid #fff;
       border-radius: 5px;
       cursor: pointer;
-      background-color: #5a3e2b;
+      background-color: #000;
       color: #fff;
-      box-shadow: 0 0 5px rgba(139,69,19,0.8);
     }
     .navigation-buttons button:hover {
       opacity: 0.8;
@@ -120,26 +116,27 @@
       color: #aaa;
     }
     a {
-      color: #00aaff;
+      color: #fff;
+      text-decoration: underline;
     }
     /* Стили для радио-кнопок с галочкой */
     .radio-label {
       cursor: pointer;
       padding: 5px;
-      border: 1px solid #555;
+      border: 1px solid #fff;
       border-radius: 3px;
       margin: 5px;
       display: inline-block;
       max-width: 400px;
       text-align: center;
-      background-color: #333;
+      background-color: #222;
     }
     input[type="radio"] {
       display: none;
     }
     input[type="radio"]:checked + .radio-label::after {
       content: " ✓";
-      color: #0f0;
+      color: #fff;
       font-weight: bold;
     }
     /* Стили для карусели выбора класса */
@@ -149,20 +146,19 @@
       margin-bottom: 20px;
       background-color: #000;
       padding: 20px;
-      border: 2px solid #8B4513;
+      border: 1px solid #fff;
       border-radius: 5px;
     }
     #carousel button {
-      background-color: #5a3e2b;
-      border: none;
+      background-color: #000;
       color: #fff;
+      border: 1px solid #fff;
       padding: 10px;
       cursor: pointer;
       border-radius: 5px;
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      box-shadow: 0 0 5px rgba(139,69,19,0.8);
     }
     #prevClass {
       left: 10px;
@@ -187,11 +183,32 @@
       max-width: 100%;
       border-radius: 5px;
     }
+    /* Стили для карточки персонажа – используем картинку шаблона с Imgur */
+    .card-template {
+      width: 800px;
+      height: 450px;
+      background-image: url('https://i.imgur.com/Epxa6Gr.jpg');
+      background-size: cover;
+      background-position: center;
+      margin: 0 auto;
+      position: relative;
+    }
+    .player-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 50%;
+      max-height: 50%;
+      border: 1px solid #fff;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Создание персонажа для настольной игры</h1>
+    <!-- Изменён заголовок -->
+    <h1>Невидимая Грань</h1>
     
     <!-- Верхняя навигация по вкладкам -->
     <div class="tabs-navigation">
@@ -275,15 +292,15 @@
       </div>
     </div>
     
-    <!-- Вкладка 4: Карточка персонажа и отправка данных -->
+    <!-- Вкладка 4: Карточка персонажа (упрощённая) -->
     <div id="tab4" class="tab">
       <h2>Карточка персонажа</h2>
       <div id="characterCard" class="character-card">
-        <!-- Здесь будет отображаться карточка персонажа -->
+        <!-- Здесь будет сформирована карточка с изображением -->
       </div>
       <div class="navigation-buttons">
         <button type="button" onclick="prevTab(4)">Назад</button>
-        <button type="button" onclick="generateCharacterCard()">Сгенерировать карточку и отправить данные</button>
+        <button type="button" onclick="generateCharacterCard()">Сформировать карточку</button>
       </div>
     </div>
   </div>
@@ -461,87 +478,23 @@
     // Изначальный вывод первого класса
     renderClass();
     
-    // --- Генерация карточки персонажа ---
+    // --- Генерация карточки персонажа (упрощённая) ---
     function generateCharacterCard() {
-      // Данные из вкладки 1
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName = document.getElementById('lastName').value.trim();
-      const age = document.getElementById('age').value;
-      const bodyType = document.getElementById('bodyType').value;
-      
-      let className = "Не выбран";
-      let weaponChosen = "Не выбрано";
-      let abilityChosen = "Не выбрано";
-      if (userSelection.classIndex !== null) {
-        const classData = classes[userSelection.classIndex];
-        className = classData.name;
-        weaponChosen = classData.weapons[userSelection.weapon];
-        abilityChosen = classData.abilities[userSelection.ability];
-      }
-      
-      // Имитация расчета характеристик (пример)
-      let characteristics = '';
-      if (className === 'Боец') {
-        characteristics = 'Сила: 8, Выносливость: 7, Интеллект: 3';
-      } else if (className === 'Дипломат/Бард') {
-        characteristics = 'Сила: 4, Выносливость: 5, Интеллект: 8';
-      } else if (className === 'Вор/Прохиндей') {
-        characteristics = 'Сила: 5, Выносливость: 5, Интеллект: 6';
-      } else if (className === 'Пьяница') {
-        characteristics = 'Сила: 6, Выносливость: 6, Интеллект: 4';
-      } else {
-        characteristics = 'Характеристики не определены.';
-      }
-      
-      // Обработка изображения (предпросмотр)
       const imageInput = document.getElementById('characterImage');
-      let imageURL = '';
+      let playerImageURL = '';
       if (imageInput.files && imageInput.files[0]) {
-        imageURL = URL.createObjectURL(imageInput.files[0]);
+        playerImageURL = URL.createObjectURL(imageInput.files[0]);
       }
       
+      // Формируем карточку как div с фоновым изображением шаблона
       const cardHTML = `
-        <h3>${firstName} ${lastName}</h3>
-        <p><strong>Возраст:</strong> ${age} лет</p>
-        <p><strong>Телосложение:</strong> ${bodyType}</p>
-        <p><strong>Класс:</strong> ${className}</p>
-        <p><strong>Выбранное оружие:</strong> ${weaponChosen}</p>
-        <p><strong>Уникальная способность:</strong> ${abilityChosen}</p>
-        <p><strong>Характеристики:</strong> ${characteristics}</p>
-        ${imageURL ? `<img src="${imageURL}" alt="Изображение персонажа" style="max-width:200px;">` : '<p>Изображение не загружено.</p>'}
+        <div class="card-template">
+          ${ playerImageURL 
+              ? `<img src="${playerImageURL}" alt="Изображение персонажа" class="player-image">`
+              : '<p style="color:#fff; padding-top:200px;">Изображение не загружено.</p>' }
+        </div>
       `;
       document.getElementById('characterCard').innerHTML = cardHTML;
-      
-      // Собираем данные для отправки
-      const dataToSend = {
-        firstName: firstName,
-        lastName: lastName,
-        age: age,
-        bodyType: bodyType,
-        class: className,
-        weapon: weaponChosen,
-        ability: abilityChosen,
-        characteristics: characteristics
-      };
-      
-      // Отправка данных на внешний сервер (например, Formspree)
-      fetch("https://formspree.io/f/yourFormId", {  // Замените на ваш реальный endpoint
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(dataToSend)
-      })
-      .then(response => {
-        if (response.ok) {
-          alert("Данные успешно отправлены!");
-        } else {
-          alert("Ошибка при отправке данных.");
-        }
-      })
-      .catch(error => {
-        alert("Ошибка: " + error);
-      });
     }
   </script>
   
@@ -558,7 +511,7 @@
     // При перетаскивании файла изменяем стиль
     dropArea.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropArea.style.borderColor = "#0f0";
+      dropArea.style.borderColor = "#aaa";
     });
     
     dropArea.addEventListener('dragleave', (e) => {
