@@ -170,7 +170,7 @@
     <div class="tabs-navigation">
       <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
       <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
-      <button type="button" class="tab-button" data-tab="tab3">Загрузка изображения</button>
+      <button type="button" class="tab-button" data-tab="tab3">Внешность персонажа</button>
       <button type="button" class="tab-button" data-tab="tab4">Карточка персонажа</button>
     </div>
     
@@ -225,13 +225,13 @@
       </div>
     </div>
     
-    <!-- Вкладка 3: Загрузка изображения -->
+    <!-- Вкладка 3: Внешность персонажа -->
     <div id="tab3" class="tab">
-      <h2>Загрузка изображения персонажа</h2>
+      <h2>Внешность персонажа</h2>
       <p style="text-align: center;">
-        Загрузите изображение вашего персонажа. Если хотите сгенерировать арт, воспользуйтесь ресурсом 
+        Загрузите изображение вашего персонажа. Чтобы сгенерировать арт, воспользуйтесь ресурсом 
         <a href="https://www.krea.ai/apps/image/flux" target="_blank">Krea</a> 
-        (черно-белое изображение, средневековый сеттинг, нарисовано от руки, слабая детализация). Если требуется заменить лицо, воспользуйтесь 
+        (черно-белое изображение, средневековый сеттинг, в стиле фрески, слабая детализация). Если требуется заменить лицо, воспользуйтесь 
         <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
       </p>
       <form id="form-tab3">
@@ -259,6 +259,7 @@
     </div>
   </div>
   
+  <!-- Скрипт для переключения вкладок и работы карусели -->
   <script>
     // Переключение вкладок по нажатию на верхние кнопки
     document.querySelectorAll('.tab-button').forEach(button => {
@@ -268,7 +269,6 @@
       });
     });
     
-    // Функции для переключения вкладок
     function showTab(tabId) {
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.classList.remove('active'));
@@ -515,5 +515,41 @@
       });
     }
   </script>
+  
+  <!-- Подключение YouTube IFrame API для автопроигрывания саундтрека -->
+  <script>
+    // Загружаем API асинхронно
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+    var player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '0',
+        width: '0',
+        videoId: 'ZK40PfIeYII',
+        playerVars: {
+          'autoplay': 1,
+          'controls': 0,
+          'loop': 1,
+          'playlist': 'ZK40PfIeYII',
+          'rel': 0,
+          'showinfo': 0
+        },
+        events: {
+          'onReady': onPlayerReady
+        }
+      });
+    }
+    
+    function onPlayerReady(event) {
+      event.target.setVolume(5); // Устанавливаем очень тихую громкость (5%)
+      event.target.playVideo();
+    }
+  </script>
+  <!-- Скрытый контейнер для YouTube плеера -->
+  <div id="player" style="display: none;"></div>
 </body>
 </html>
