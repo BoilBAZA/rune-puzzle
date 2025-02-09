@@ -72,14 +72,9 @@
       margin-left: auto;
       margin-right: auto;
     }
+    /* Скрываем стандартный input для загрузки файла */
     input[type="file"] {
-      background-color: #333;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 5px;
-      border-radius: 3px;
-      display: block;
-      margin: 10px auto;
+      display: none;
     }
     .character-card {
       border: 2px solid #fff;
@@ -160,6 +155,19 @@
     #classContent {
       transition: opacity 0.5s ease-in-out;
     }
+    /* Стили для области загрузки файла (drag & drop) */
+    #dropArea {
+      border: 2px dashed #fff;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    #dropArea img {
+      max-width: 100%;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -235,9 +243,11 @@
         <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
       </p>
       <form id="form-tab3">
-        <label for="characterImage" style="text-align: center;">Изображение персонажа
-          <span class="hint">(Загрузите файл изображения)</span>
-        </label>
+        <!-- Область для загрузки файла с поддержкой drag and drop -->
+        <div id="dropArea">
+          <img src="https://i.imgur.com/BcqKIDB.jpg" alt="Нажмите для выбора файла или перетащите файл сюда">
+          <p class="hint">Нажмите на картинку или перетащите файл сюда</p>
+        </div>
         <input type="file" id="characterImage" name="characterImage" accept="image/*">
       </form>
       <div class="navigation-buttons">
@@ -516,6 +526,56 @@
     }
   </script>
   
+  <!-- Скрипт для drag & drop в области загрузки файла -->
+  <script>
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('characterImage');
+    
+    // При клике по области запускаем выбор файла
+    dropArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // При перетаскивании файла изменяем стиль
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.style.borderColor = "#0f0";
+    });
+    
+    dropArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropArea.style.borderColor = "#fff";
+    });
+    
+    // Обработка события drop
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.style.borderColor = "#fff";
+      const files = e.dataTransfer.files;
+      if(files.length) {
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        fileInput.files = dt.files;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          dropArea.innerHTML = `<img src="${event.target.result}" alt="Предпросмотр выбранного файла" style="max-width:100%; cursor: pointer; border: 2px dashed #fff; border-radius: 5px;"> <p class="hint">Нажмите на картинку или перетащите файл сюда</p>`;
+        };
+        reader.readAsDataURL(files[0]);
+      }
+    });
+    
+    // Обработка выбора файла через диалоговое окно
+    fileInput.addEventListener('change', () => {
+      if(fileInput.files.length) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          dropArea.innerHTML = `<img src="${event.target.result}" alt="Предпросмотр выбранного файла" style="max-width:100%; cursor: pointer; border: 2px dashed #fff; border-radius: 5px;"> <p class="hint">Нажмите на картинку или перетащите файл сюда</p>`;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    });
+  </script>
+  
   <!-- Подключение YouTube IFrame API для автопроигрывания саундтрека -->
   <script>
     // Загружаем API асинхронно
@@ -545,7 +605,7 @@
     }
     
     function onPlayerReady(event) {
-      event.target.setVolume(5); // Устанавливаем очень тихую громкость (5%)
+      event.target.setVolume(5); // Очень тихая громкость (5%)
       event.target.playVideo();
     }
   </script>
