@@ -3,17 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <title>Создание персонажа для настольной игры</title>
+  <!-- Подключаем декоративный шрифт для заголовков -->
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
   <style>
-    /* Основные стили для темного оформления */
+    /* Контейнер для центрирования контента */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    /* Основные стили для темного оформления в стиле средневековья */
     body {
       font-family: Arial, sans-serif;
       background-color: #000;
       color: #fff;
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
     h1, h2, h3, h4 {
       text-align: center;
+      font-family: 'MedievalSharp', cursive;
     }
     .tab {
       display: none;
@@ -45,23 +54,32 @@
     label {
       display: block;
       margin-top: 10px;
+      text-align: left;
     }
     input[type="text"],
     input[type="number"],
     select {
       width: 100%;
+      max-width: 400px;
       padding: 8px;
       margin-top: 5px;
       box-sizing: border-box;
       background-color: #333;
       color: #fff;
       border: 1px solid #555;
+      border-radius: 3px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
     input[type="file"] {
       background-color: #333;
       color: #fff;
       border: 1px solid #555;
       padding: 5px;
+      border-radius: 3px;
+      display: block;
+      margin: 10px auto;
     }
     .character-card {
       border: 2px solid #fff;
@@ -101,6 +119,8 @@
       border-radius: 3px;
       margin: 5px;
       display: inline-block;
+      max-width: 400px;
+      text-align: center;
     }
     input[type="radio"] {
       display: none;
@@ -110,11 +130,14 @@
       color: #0f0;
       font-weight: bold;
     }
-    /* Стили для карусели */
+    /* Стили для карусели выбора класса */
     #carousel {
       position: relative;
       text-align: center;
       margin-bottom: 20px;
+      background-color: #000;
+      padding: 20px;
+      border-radius: 5px;
     }
     #carousel button {
       background-color: #444;
@@ -123,108 +146,116 @@
       padding: 10px;
       cursor: pointer;
       border-radius: 5px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    #prevClass {
+      left: 10px;
+    }
+    #nextClass {
+      right: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Создание персонажа для настольной игры</h1>
-  
-  <!-- Навигация по вкладкам -->
-  <div class="tabs-navigation">
-    <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
-    <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
-    <button type="button" class="tab-button" data-tab="tab3">Загрузка изображения</button>
-    <button type="button" class="tab-button" data-tab="tab4">Карточка персонажа</button>
-  </div>
-  
-  <!-- Вкладка 1: Основные данные -->
-  <div id="tab1" class="tab active">
-    <h2>Основные данные</h2>
-    <form id="form-tab1">
-      <label for="firstName">Имя персонажа
-        <span class="hint">(Введите имя персонажа)</span>
-      </label>
-      <input type="text" id="firstName" name="firstName" placeholder="Например: Артур" required>
-      
-      <label for="lastName">Фамилия персонажа
-        <span class="hint">(Введите фамилию персонажа)</span>
-      </label>
-      <input type="text" id="lastName" name="lastName" placeholder="Например: Лев" required>
-      
-      <label for="age">Возраст (в годах)
-        <span class="hint">(Введите возраст персонажа)</span>
-      </label>
-      <input type="number" id="age" name="age" min="0" placeholder="Например: 25" required>
-      
-      <label for="bodyType">Телосложение
-        <span class="hint">(Выберите телосложение персонажа)</span>
-      </label>
-      <select id="bodyType" name="bodyType" required>
-        <option value="">Выберите телосложение</option>
-        <option value="Худощавое">Худощавое</option>
-        <option value="Нормальное">Нормальное</option>
-        <option value="Крепкое">Крепкое</option>
-      </select>
-    </form>
-    <div class="navigation-buttons">
-      <button type="button" onclick="nextTab(1)">Далее</button>
+  <div class="container">
+    <h1>Создание персонажа для настольной игры</h1>
+    
+    <!-- Навигация по вкладкам -->
+    <div class="tabs-navigation">
+      <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
+      <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
+      <button type="button" class="tab-button" data-tab="tab3">Загрузка изображения</button>
+      <button type="button" class="tab-button" data-tab="tab4">Карточка персонажа</button>
     </div>
-  </div>
-  
-  <!-- Вкладка 2: Выбор класса персонажа (карасель) -->
-  <div id="tab2" class="tab">
-    <h2>Выбор класса персонажа</h2>
-    <div id="carousel">
-      <button id="prevClass" style="position: absolute; left: 10px; top: 50%;">Назад</button>
-      <div id="classContent" style="display: inline-block; width: 80%; vertical-align: middle;">
-        <!-- Динамически вставляемое содержимое -->
+    
+    <!-- Вкладка 1: Основные данные -->
+    <div id="tab1" class="tab active">
+      <h2>Основные данные</h2>
+      <form id="form-tab1">
+        <label for="firstName">Имя персонажа
+          <span class="hint">(Введите имя персонажа)</span>
+        </label>
+        <input type="text" id="firstName" name="firstName" placeholder="Например: Артур" required>
+        
+        <label for="lastName">Фамилия персонажа
+          <span class="hint">(Введите фамилию персонажа)</span>
+        </label>
+        <input type="text" id="lastName" name="lastName" placeholder="Например: Лев" required>
+        
+        <label for="age">Возраст (в годах)
+          <span class="hint">(Введите возраст персонажа)</span>
+        </label>
+        <input type="number" id="age" name="age" min="0" placeholder="Например: 25" required>
+        
+        <label for="bodyType">Телосложение
+          <span class="hint">(Выберите телосложение персонажа)</span>
+        </label>
+        <select id="bodyType" name="bodyType" required>
+          <option value="">Выберите телосложение</option>
+          <option value="Худощавое">Худощавое</option>
+          <option value="Нормальное">Нормальное</option>
+          <option value="Крепкое">Крепкое</option>
+        </select>
+      </form>
+      <div class="navigation-buttons">
+        <button type="button" onclick="nextTab(1)">Далее</button>
       </div>
-      <button id="nextClass" style="position: absolute; right: 10px; top: 50%;">Далее</button>
     </div>
-    <div style="text-align: center; margin-top: 20px;">
-      <button id="selectClassButton" disabled>Выбрать этот класс</button>
+    
+    <!-- Вкладка 2: Выбор класса персонажа (карасель) -->
+    <div id="tab2" class="tab">
+      <h2>Выбор класса персонажа</h2>
+      <div id="carousel">
+        <button id="prevClass">Назад</button>
+        <div id="classContent" style="display: inline-block; width: 80%; vertical-align: middle;">
+          <!-- Динамически вставляемое содержимое -->
+        </div>
+        <button id="nextClass">Далее</button>
+      </div>
+      <div class="navigation-buttons">
+        <button type="button" onclick="prevTab(2)">Назад</button>
+        <button type="button" id="tab2NextButton" onclick="goToNextTab()" disabled>Далее</button>
+      </div>
     </div>
-    <div class="navigation-buttons">
-      <button type="button" onclick="prevTab(2)">Назад</button>
-      <button type="button" id="tab2NextButton" onclick="goToNextTab()" disabled>Далее</button>
+    
+    <!-- Вкладка 3: Загрузка изображения -->
+    <div id="tab3" class="tab">
+      <h2>Загрузка изображения персонажа</h2>
+      <p style="text-align: center;">
+        Загрузите изображение вашего персонажа. Если хотите сгенерировать арт, воспользуйтесь ресурсом 
+        <a href="https://www.krea.ai/apps/image/flux" target="_blank">Krea</a> 
+        (черно-белое изображение, средневековый сеттинг, нарисовано от руки, слабая детализация). Если требуется заменить лицо, воспользуйтесь 
+        <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
+      </p>
+      <form id="form-tab3">
+        <label for="characterImage" style="text-align: center;">Изображение персонажа
+          <span class="hint">(Загрузите файл изображения)</span>
+        </label>
+        <input type="file" id="characterImage" name="characterImage" accept="image/*">
+      </form>
+      <div class="navigation-buttons">
+        <button type="button" onclick="prevTab(3)">Назад</button>
+        <button type="button" onclick="nextTab(3)">Далее</button>
+      </div>
     </div>
-  </div>
-  
-  <!-- Вкладка 3: Загрузка изображения -->
-  <div id="tab3" class="tab">
-    <h2>Загрузка изображения персонажа</h2>
-    <p>
-      Загрузите изображение вашего персонажа. Если хотите сгенерировать арт, воспользуйтесь ресурсом 
-      <a href="https://www.krea.ai/apps/image/flux" target="_blank">Krea</a> 
-      (черно-белое изображение, средневековый сеттинг, нарисовано от руки, слабая детализация). Если требуется заменить лицо, воспользуйтесь 
-      <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
-    </p>
-    <form id="form-tab3">
-      <label for="characterImage">Изображение персонажа
-        <span class="hint">(Загрузите файл изображения)</span>
-      </label>
-      <input type="file" id="characterImage" name="characterImage" accept="image/*">
-    </form>
-    <div class="navigation-buttons">
-      <button type="button" onclick="prevTab(3)">Назад</button>
-      <button type="button" onclick="nextTab(3)">Далее</button>
-    </div>
-  </div>
-  
-  <!-- Вкладка 4: Карточка персонажа и отправка данных -->
-  <div id="tab4" class="tab">
-    <h2>Карточка персонажа</h2>
-    <div id="characterCard" class="character-card">
-      <!-- Здесь будет отображаться карточка персонажа -->
-    </div>
-    <div class="navigation-buttons">
-      <button type="button" onclick="prevTab(4)">Назад</button>
-      <button type="button" onclick="generateCharacterCard()">Сгенерировать карточку и отправить данные</button>
+    
+    <!-- Вкладка 4: Карточка персонажа и отправка данных -->
+    <div id="tab4" class="tab">
+      <h2>Карточка персонажа</h2>
+      <div id="characterCard" class="character-card">
+        <!-- Здесь будет отображаться карточка персонажа -->
+      </div>
+      <div class="navigation-buttons">
+        <button type="button" onclick="prevTab(4)">Назад</button>
+        <button type="button" onclick="generateCharacterCard()">Сгенерировать карточку и отправить данные</button>
+      </div>
     </div>
   </div>
   
   <script>
-    // Функции переключения вкладок (такие же, как и ранее)
+    // Функции переключения вкладок
     function showTab(tabId) {
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.classList.remove('active'));
@@ -256,8 +287,8 @@
           "Копьё (прочное, но с ржавым наконечником)"
         ],
         abilities: [
-          "Несокрушимый: В течение короткого времени получает значительное снижение урона от всех атак. Может игнорировать эффект, который выбил бы его из строя (например, потеря равновесия, отбрасывание) (1 раз за бой)",
-          "Меткий выстрел: Следующий выстрел наносит урон в слабое место противника, значительно увеличивая его эффективность. Может пробить лёгкую защиту, укрытие или усложнить действия противника (например, попасть в руку, чтобы тот уронил оружие). (1 раз за бой)"
+          "Несокрушимый: В течение короткого времени получает значительное снижение урона от всех атак. Может игнорировать эффект, выбивающий из строя (1 раз за бой)",
+          "Меткий выстрел: Следующий выстрел наносит урон в слабое место противника, значительно увеличивая эффективность. (1 раз за бой)"
         ]
       },
       {
@@ -265,12 +296,12 @@
         image: "https://i.imgur.com/6zqVCKU.jpg",
         description: "Человек слова, привыкший решать вопросы речью, а не оружием. Хотя некогда имел влияние, теперь он никто.",
         weapons: [
-          "Тонкий кинжал (скрываемый, используется скорее для самообороны)",
-          "Лютня (можно использовать как музыкальный инструмент или как импровизированную дубину в крайнем случае)"
+          "Тонкий кинжал (скрываемый, используется для самообороны)",
+          "Лютня (как музыкальный инструмент или импровизированная дубина)"
         ],
         abilities: [
-          "Финт ушами: Может убедить врага или NPC на короткое время отказаться от агрессивных действий. В бою может заставить противника на секунду замешкаться, что даёт шанс на инициативу. (1 раз за бой или локацию)",
-          "Боевой дух: Мотивирует союзника, временно увеличивая его решимость и боевой настрой. Может помочь снять страх или моральное давление, сделав персонажа менее восприимчивым к эффектам, связанным с подавлением воли. (1 раз за бой)"
+          "Финт ушами: Может убедить врага или NPC отказаться от агрессивных действий. (1 раз за бой или локацию)",
+          "Боевой дух: Мотивирует союзника, временно увеличивая его решимость и боевой настрой. (1 раз за бой)"
         ]
       },
       {
@@ -282,8 +313,8 @@
           "Гибкий дротик (скрытый, но малополезный в драке)"
         ],
         abilities: [
-          "Тёмные руки: Может незаметно забрать у врага или NPC небольшой, но важный предмет. В бою способен выхватить оружие из рук противника или отвлечь его движением руки. (1 раз за бой или локацию)",
-          "Наглая ложь: Один раз за локацию может заставить NPC поверить в его ложь, даже если ситуация выглядит подозрительно. Может убедить кого-то, что он — важная персона, избежать проверки документов или проникнуть в охраняемое место. (1 раз за бой или локацию)"
+          "Тёмные руки: Может незаметно забрать у врага или NPC важный предмет. (1 раз за бой или локацию)",
+          "Наглая ложь: Один раз за локацию заставляет NPC поверить в его ложь. (1 раз за бой или локацию)"
         ]
       },
       {
@@ -292,16 +323,17 @@
         description: "Никто не принимает его всерьёз, но он уже прошёл через многое. В зависимости от напитка, может стать кем угодно.",
         weapons: [
           "Разбитая бутылка (как импровизированный нож)",
-          "Деревянная дубина (больше, как посох, но можно драться)"
+          "Деревянная дубина (больше как посох, но можно драться)"
         ],
         abilities: [
-          "Пьяная ярость: На короткое время становится менее чувствительным к боли и получает большую физическую мощь. Может игнорировать слабые удары или продолжать бой даже при серьёзном уроне. (1 раз за бой или локацию)",
-          "Мудрость в бокале: Один раз за локацию может вспомнить или случайно разгадать что-то важное (например, старую легенду, код от двери, слабое место врага). Может произнести настолько убедительную философскую речь, что даже враги задумаются о жизни."
+          "Пьяная ярость: На короткое время становится менее чувствительным к боли и получает большую физическую мощь. (1 раз за бой или локацию)",
+          "Мудрость в бокале: Один раз за локацию может вспомнить или случайно разгадать что-то важное. (1 раз за бой или локацию)"
         ]
       }
     ];
     
     let currentClassIndex = 0;
+    // Объект для хранения выбранных данных по классу
     let userSelection = { classIndex: null, weapon: null, ability: null };
     
     function renderClass() {
@@ -335,9 +367,7 @@
         </div>
       `;
       
-      // Сбрасываем выбор (при перелистывании сбрасываются ранее выбранные варианты)
-      document.getElementById("selectClassButton").disabled = true;
-      // Повесим обработчики для радио-кнопок, чтобы проверять, выбраны ли оба параметра
+      // При изменении выбора оружия и способности проверяем, выбраны ли оба варианта
       const weaponRadios = document.getElementsByName("weaponSelection");
       const abilityRadios = document.getElementsByName("abilitySelection");
       weaponRadios.forEach(radio => {
@@ -346,13 +376,19 @@
       abilityRadios.forEach(radio => {
         radio.addEventListener("change", checkSelections);
       });
+      // Сбрасываем ранее активированное значение для перехода
+      document.getElementById("tab2NextButton").disabled = true;
     }
     
     function checkSelections() {
       const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
       const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
       if (weaponSelected && abilitySelected) {
-        document.getElementById("selectClassButton").disabled = false;
+        // Если оба варианта выбраны, сохраняем выбор автоматически
+        userSelection.classIndex = currentClassIndex;
+        userSelection.weapon = weaponSelected.value;
+        userSelection.ability = abilitySelected.value;
+        document.getElementById("tab2NextButton").disabled = false;
       }
     }
     
@@ -366,21 +402,6 @@
       renderClass();
     });
     
-    // При клике на "Выбрать этот класс" сохраняем выбор и разрешаем переход дальше
-    document.getElementById("selectClassButton").addEventListener("click", () => {
-      const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
-      const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
-      if (weaponSelected && abilitySelected) {
-        userSelection.classIndex = currentClassIndex;
-        userSelection.weapon = weaponSelected.value;
-        userSelection.ability = abilitySelected.value;
-        alert(`Выбран класс: ${classes[currentClassIndex].name}`);
-        document.getElementById("tab2NextButton").disabled = false;
-      } else {
-        alert("Пожалуйста, выберите оружие и уникальную способность.");
-      }
-    });
-    
     function goToNextTab() {
       nextTab(2);
     }
@@ -388,7 +409,7 @@
     // Изначальный вывод первого класса
     renderClass();
     
-    // --- Генерация карточки персонажа (оставляем как было) ---
+    // --- Генерация карточки персонажа ---
     function generateCharacterCard() {
       // Данные из вкладки 1
       const firstName = document.getElementById('firstName').value.trim();
@@ -396,7 +417,6 @@
       const age = document.getElementById('age').value;
       const bodyType = document.getElementById('bodyType').value;
       
-      // Если пользователь выбрал класс во вкладке 2, то данные о нём из userSelection
       let className = "Не выбран";
       let weaponChosen = "Не выбрано";
       let abilityChosen = "Не выбрано";
@@ -407,7 +427,7 @@
         abilityChosen = classData.abilities[userSelection.ability];
       }
       
-      // Имитация анализа характеристик (пример)
+      // Имитация расчета характеристик (пример)
       let characteristics = '';
       if (className === 'Боец') {
         characteristics = 'Сила: 8, Выносливость: 7, Интеллект: 3';
@@ -453,7 +473,7 @@
       };
       
       // Отправка данных на внешний сервер (например, Formspree)
-      fetch("https://formspree.io/f/yourFormId", {  // Замените на ваш endpoint
+      fetch("https://formspree.io/f/yourFormId", {  // Замените на ваш реальный endpoint
         method: "POST",
         headers: {
           "Content-Type": "application/json"
