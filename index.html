@@ -166,7 +166,7 @@
   <div class="container">
     <h1>Создание персонажа для настольной игры</h1>
     
-    <!-- Навигация по вкладкам -->
+    <!-- Верхняя навигация по вкладкам -->
     <div class="tabs-navigation">
       <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
       <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
@@ -179,14 +179,14 @@
       <h2>Основные данные</h2>
       <form id="form-tab1">
         <label for="firstName">Имя персонажа
-          <span class="hint">(Введите имя персонажа)</span>
+          <span class="hint">(Например: Фридрих, Ярослав, Лех)</span>
         </label>
-        <input type="text" id="firstName" name="firstName" placeholder="Например: Артур" required>
+        <input type="text" id="firstName" name="firstName" placeholder="Например: Фридрих" required>
         
         <label for="lastName">Фамилия персонажа
-          <span class="hint">(Введите фамилию персонажа)</span>
+          <span class="hint">(Например: Вацлав, Гюнтер, Мариуш)</span>
         </label>
-        <input type="text" id="lastName" name="lastName" placeholder="Например: Лев" required>
+        <input type="text" id="lastName" name="lastName" placeholder="Например: Вацлав" required>
         
         <label for="age">Возраст (в годах)
           <span class="hint">(Введите возраст персонажа)</span>
@@ -201,6 +201,7 @@
           <option value="Худощавое">Худощавое</option>
           <option value="Нормальное">Нормальное</option>
           <option value="Крепкое">Крепкое</option>
+          <option value="Толстяк">Толстяк</option>
         </select>
       </form>
       <div class="navigation-buttons">
@@ -259,6 +260,14 @@
   </div>
   
   <script>
+    // Переключение вкладок по нажатию на верхние кнопки
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        showTab(tabId);
+      });
+    });
+    
     // Функции для переключения вкладок
     function showTab(tabId) {
       const tabs = document.querySelectorAll('.tab');
@@ -383,7 +392,7 @@
         </div>
       `;
       
-      // Повесим обработчики для радио-кнопок, чтобы проверять выбор
+      // Повесим обработчики для радио-кнопок для проверки выбора
       const weaponRadios = document.getElementsByName("weaponSelection");
       const abilityRadios = document.getElementsByName("abilitySelection");
       weaponRadios.forEach(radio => {
