@@ -1,122 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rune Puzzle - Open the Suitcase</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #000000; /* Чёрный фон */
-            color: #FFFFFF; /* Белый текст */
-            font-size: 2.5vw; /* Адаптивный размер текста */
-        }
-        .rune {
-            width: 15vw; /* Адаптивный размер иконок */
-            height: 15vw; /* Адаптивный размер иконок */
-            margin: 2vh;
-            background-size: contain;
-            background-repeat: no-repeat;
-            cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
-            background-image: url('https://i.imgur.com/3dFGw98.png'); /* Изначально руна огня */
-        }
-        .rune:active {
-            transform: scale(0.9);
-            box-shadow: 0 0 10px #FFF;
-        }
-        #solution {
-            display: none;
-            margin-top: 5vh;
-            font-size: 3vw; /* Адаптивный размер текста */
-            font-weight: bold;
-            color: #FFFFFF; /* Белый текст */
-        }
-        #error-message {
-            display: none;
-            margin-top: 5vh;
-            font-size: 2.5vw; /* Адаптивный размер текста */
-            color: #FF0000; /* Красный текст */
-        }
-        button {
-            background-color: #333333; /* Тёмно-серый фон для кнопки */
-            color: #FFFFFF; /* Белый текст на кнопке */
-            padding: 1.5vw 3vw; /* Адаптивный размер кнопки */
-            border: none;
-            cursor: pointer;
-            font-size: 2.5vw; /* Адаптивный размер текста кнопки */
-        }
-        button:hover {
-            background-color: #555555; /* Более светлый серый при наведении */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Создание персонажа для настольной игры</title>
+  <style>
+    /* Базовые стили для оформления сайта */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .tab {
+      display: none;
+      padding: 20px;
+      background: #fff;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .tab.active {
+      display: block;
+    }
+    .tabs-navigation {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tabs-navigation button {
+      padding: 10px 15px;
+      margin: 0 5px;
+      border: none;
+      background-color: #333;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .tabs-navigation button.active {
+      background-color: #555;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    .class-option {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .class-option img {
+      max-width: 100px;
+      margin-right: 10px;
+    }
+    .character-card {
+      border: 2px solid #333;
+      border-radius: 5px;
+      padding: 20px;
+      background-color: #fff;
+    }
+    .navigation-buttons {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .navigation-buttons button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .navigation-buttons button:hover {
+      opacity: 0.8;
+    }
+    .hint {
+      font-size: 0.9em;
+      color: #888;
+    }
+  </style>
 </head>
 <body>
-
-    <div id="rune1" class="rune"></div>
-    <div id="rune2" class="rune"></div>
-    <div id="rune3" class="rune"></div>
-    <div id="rune4" class="rune"></div>
-
-    <button id="check">Открыть замок</button>
-
-    <div id="solution">Чемодан открыт! Слово: Альфа</div>
-    <div id="error-message">Замок не поддается</div>
-
-    <script>
-        const runes = [
-            'https://i.imgur.com/ligU60B.png',  // Вода (Water)
-            'https://i.imgur.com/3dFGw98.png',  // Огонь (Fire)
-            'https://i.imgur.com/xpbjM4j.png',  // Воздух (Air)
-            'https://i.imgur.com/4gAfIVv.png'   // Земля (Earth)
-        ];
-
-        const correctSequence = [0, 1, 2, 3]; // Соответствует последовательности: Вода, Огонь, Воздух, Земля
-        let indexes = [1, 1, 1, 1]; // Изначально все руны - Огонь (индекс 1)
-
-        function updateRunes() {
-            document.getElementById('rune1').style.backgroundImage = `url(${runes[indexes[0]]})`;
-            document.getElementById('rune2').style.backgroundImage = `url(${runes[indexes[1]]})`;
-            document.getElementById('rune3').style.backgroundImage = `url(${runes[indexes[2]]})`;
-            document.getElementById('rune4').style.backgroundImage = `url(${runes[indexes[3]]})`;
+  <h1>Создание персонажа для настольной игры</h1>
+  
+  <!-- Навигация по вкладкам -->
+  <div class="tabs-navigation">
+    <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
+    <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
+    <button type="button" class="tab-button" data-tab="tab3">Загрузка изображения</button>
+    <button type="button" class="tab-button" data-tab="tab4">Карточка персонажа</button>
+  </div>
+  
+  <!-- Вкладка 1: Основные данные -->
+  <div id="tab1" class="tab active">
+    <h2>Основные данные</h2>
+    <form id="form-tab1">
+      <label for="firstName">Имя персонажа
+        <span class="hint">(Введите имя персонажа)</span>
+      </label>
+      <input type="text" id="firstName" name="firstName" placeholder="Например: Артур" required>
+      
+      <label for="lastName">Фамилия персонажа
+        <span class="hint">(Введите фамилию персонажа)</span>
+      </label>
+      <input type="text" id="lastName" name="lastName" placeholder="Например: Лев" required>
+      
+      <label for="age">Возраст (в годах)
+        <span class="hint">(Введите возраст персонажа)</span>
+      </label>
+      <input type="number" id="age" name="age" min="0" placeholder="Например: 25" required>
+      
+      <label for="bodyType">Телосложение
+        <span class="hint">(Выберите телосложение персонажа)</span>
+      </label>
+      <select id="bodyType" name="bodyType" required>
+        <option value="">Выберите телосложение</option>
+        <option value="Худощавое">Худощавое</option>
+        <option value="Нормальное">Нормальное</option>
+        <option value="Крепкое">Крепкое</option>
+      </select>
+    </form>
+    <div class="navigation-buttons">
+      <button type="button" onclick="nextTab(1)">Далее</button>
+    </div>
+  </div>
+  
+  <!-- Вкладка 2: Класс персонажа -->
+  <div id="tab2" class="tab">
+    <h2>Выбор класса персонажа</h2>
+    <form id="form-tab2">
+      <div class="class-option">
+        <input type="radio" id="warrior" name="characterClass" value="Воин" required>
+        <label for="warrior">
+          <strong>Воин</strong><br>
+          <img src="https://via.placeholder.com/100?text=Воин" alt="Воин"><br>
+          <em>Описание:</em> Сильный и выносливый.<br>
+          <em>Бонусы:</em> Высокая сила.<br>
+          <em>Дебаффы:</em> Медленная скорость.<br>
+          <em>Экипировка:</em> Меч, щит.
+        </label>
+      </div>
+      <div class="class-option">
+        <input type="radio" id="mage" name="characterClass" value="Маг" required>
+        <label for="mage">
+          <strong>Маг</strong><br>
+          <img src="https://via.placeholder.com/100?text=Маг" alt="Маг"><br>
+          <em>Описание:</em> Владеет магией и знаниями.<br>
+          <em>Бонусы:</em> Высокий интеллект.<br>
+          <em>Дебаффы:</em> Физическая слабость.<br>
+          <em>Экипировка:</em> Посох, мантия.
+        </label>
+      </div>
+      <div class="class-option">
+        <input type="radio" id="rogue" name="characterClass" value="Разбойник" required>
+        <label for="rogue">
+          <strong>Разбойник</strong><br>
+          <img src="https://via.placeholder.com/100?text=Разбойник" alt="Разбойник"><br>
+          <em>Описание:</em> Ловкий и скрытный.<br>
+          <em>Бонусы:</em> Высокая ловкость.<br>
+          <em>Дебаффы:</em> Низкая защита.<br>
+          <em>Экипировка:</em> Кинжал, легкая броня.
+        </label>
+      </div>
+    </form>
+    <div class="navigation-buttons">
+      <button type="button" onclick="prevTab(2)">Назад</button>
+      <button type="button" onclick="nextTab(2)">Далее</button>
+    </div>
+  </div>
+  
+  <!-- Вкладка 3: Загрузка изображения -->
+  <div id="tab3" class="tab">
+    <h2>Загрузка изображения персонажа</h2>
+    <p>
+      Загрузите изображение вашего персонажа. Если хотите сгенерировать арт, воспользуйтесь ресурсом 
+      <a href="https://www.krea.ai/apps/image/flux" target="_blank">Krea</a> 
+      (черно-белое изображение, средневековый сеттинг, нарисовано от руки, слабая детализация). Если требуется заменить лицо, воспользуйтесь 
+      <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
+    </p>
+    <form id="form-tab3">
+      <label for="characterImage">Изображение персонажа
+        <span class="hint">(Загрузите файл изображения)</span>
+      </label>
+      <input type="file" id="characterImage" name="characterImage" accept="image/*">
+    </form>
+    <div class="navigation-buttons">
+      <button type="button" onclick="prevTab(3)">Назад</button>
+      <button type="button" onclick="nextTab(3)">Далее</button>
+    </div>
+  </div>
+  
+  <!-- Вкладка 4: Карточка персонажа -->
+  <div id="tab4" class="tab">
+    <h2>Карточка персонажа</h2>
+    <div id="characterCard" class="character-card">
+      <!-- Здесь будет отображаться карточка персонажа -->
+    </div>
+    <div class="navigation-buttons">
+      <button type="button" onclick="prevTab(4)">Назад</button>
+      <button type="button" onclick="generateCharacterCard()">Сгенерировать карточку</button>
+    </div>
+  </div>
+  
+  <script>
+    // Функция для отображения нужной вкладки
+    function showTab(tabId) {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      
+      const tabButtons = document.querySelectorAll('.tab-button');
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector('.tab-button[data-tab="'+tabId+'"]').classList.add('active');
+    }
+    
+    // Переход на следующую или предыдущую вкладку
+    function nextTab(currentTabNumber) {
+      const nextTabId = 'tab' + (currentTabNumber + 1);
+      showTab(nextTabId);
+    }
+    function prevTab(currentTabNumber) {
+      const prevTabId = 'tab' + (currentTabNumber - 1);
+      showTab(prevTabId);
+    }
+    
+    // Обработчик для переключения вкладок при клике на кнопки навигации
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        showTab(tabId);
+      });
+    });
+    
+    // Функция для генерации карточки персонажа
+    function generateCharacterCard() {
+      // Считываем данные из первой вкладки
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const age = document.getElementById('age').value;
+      const bodyType = document.getElementById('bodyType').value;
+      
+      // Получаем выбранный класс из второй вкладки
+      const classRadios = document.getElementsByName('characterClass');
+      let characterClass = '';
+      for (let radio of classRadios) {
+        if (radio.checked) {
+          characterClass = radio.value;
+          break;
         }
-
-        document.getElementById('rune1').addEventListener('click', () => {
-            indexes[0] = (indexes[0] + 1) % runes.length;
-            updateRunes();
-        });
-
-        document.getElementById('rune2').addEventListener('click', () => {
-            indexes[1] = (indexes[1] + 1) % runes.length;
-            updateRunes();
-        });
-
-        document.getElementById('rune3').addEventListener('click', () => {
-            indexes[2] = (indexes[2] + 1) % runes.length;
-            updateRunes();
-        });
-
-        document.getElementById('rune4').addEventListener('click', () => {
-            indexes[3] = (indexes[3] + 1) % runes.length;
-            updateRunes();
-        });
-
-        document.getElementById('check').addEventListener('click', () => {
-            if (indexes.join('') === correctSequence.join('')) {
-                document.getElementById('solution').style.display = 'block';
-                document.getElementById('error-message').style.display = 'none';
-            } else {
-                document.getElementById('error-message').style.display = 'block';
-                document.getElementById('check').style.display = 'none';
-            }
-        });
-
-        updateRunes();
-    </script>
-
+      }
+      
+      // Имитация анализа данных (здесь можно интегрировать вызов API ChatGPT)
+      let characteristics = '';
+      if (characterClass === 'Воин') {
+        characteristics = 'Сила: 8, Выносливость: 7, Интеллект: 3';
+      } else if (characterClass === 'Маг') {
+        characteristics = 'Сила: 3, Выносливость: 4, Интеллект: 9';
+      } else if (characterClass === 'Разбойник') {
+        characteristics = 'Сила: 5, Выносливость: 5, Интеллект: 6';
+      } else {
+        characteristics = 'Характеристики не определены.';
+      }
+      
+      // Обработка изображения, если оно загружено
+      const imageInput = document.getElementById('characterImage');
+      let imageURL = '';
+      if (imageInput.files && imageInput.files[0]) {
+        imageURL = URL.createObjectURL(imageInput.files[0]);
+      }
+      
+      // Формируем HTML для карточки персонажа
+      const cardHTML = `
+        <h3>${firstName} ${lastName}</h3>
+        <p><strong>Возраст:</strong> ${age} лет</p>
+        <p><strong>Телосложение:</strong> ${bodyType}</p>
+        <p><strong>Класс:</strong> ${characterClass}</p>
+        <p><strong>Характеристики:</strong> ${characteristics}</p>
+        ${imageURL ? `<img src="${imageURL}" alt="Изображение персонажа" style="max-width:200px;">` : '<p>Изображение не загружено.</p>'}
+      `;
+      document.getElementById('characterCard').innerHTML = cardHTML;
+    }
+  </script>
 </body>
 </html>
