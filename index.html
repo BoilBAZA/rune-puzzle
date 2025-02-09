@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <title>Создание персонажа для настольной игры</title>
   <style>
-    /* Базовые стили для оформления сайта */
+    /* Основные стили для темного оформления */
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background-color: #000;
+      color: #fff;
       margin: 0;
       padding: 20px;
     }
@@ -17,9 +18,10 @@
     .tab {
       display: none;
       padding: 20px;
-      background: #fff;
+      background: #222;
       margin-bottom: 20px;
       border-radius: 5px;
+      border: 1px solid #444;
     }
     .tab.active {
       display: block;
@@ -32,13 +34,13 @@
       padding: 10px 15px;
       margin: 0 5px;
       border: none;
-      background-color: #333;
+      background-color: #444;
       color: #fff;
       border-radius: 5px;
       cursor: pointer;
     }
     .tabs-navigation button.active {
-      background-color: #555;
+      background-color: #666;
     }
     label {
       display: block;
@@ -51,24 +53,34 @@
       padding: 8px;
       margin-top: 5px;
       box-sizing: border-box;
+      background-color: #333;
+      color: #fff;
+      border: 1px solid #555;
+    }
+    input[type="file"] {
+      background-color: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px;
     }
     .class-option {
-      border: 1px solid #ddd;
+      border: 1px solid #555;
       border-radius: 5px;
       padding: 10px;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
+      background-color: #333;
     }
     .class-option img {
       max-width: 100px;
       margin-right: 10px;
     }
     .character-card {
-      border: 2px solid #333;
+      border: 2px solid #fff;
       border-radius: 5px;
       padding: 20px;
-      background-color: #fff;
+      background-color: #222;
     }
     .navigation-buttons {
       text-align: center;
@@ -80,13 +92,18 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      background-color: #444;
+      color: #fff;
     }
     .navigation-buttons button:hover {
       opacity: 0.8;
     }
     .hint {
       font-size: 0.9em;
-      color: #888;
+      color: #aaa;
+    }
+    a {
+      color: #00aaff;
     }
   </style>
 </head>
@@ -200,7 +217,7 @@
     </div>
   </div>
   
-  <!-- Вкладка 4: Карточка персонажа -->
+  <!-- Вкладка 4: Карточка персонажа и отправка данных -->
   <div id="tab4" class="tab">
     <h2>Карточка персонажа</h2>
     <div id="characterCard" class="character-card">
@@ -208,7 +225,7 @@
     </div>
     <div class="navigation-buttons">
       <button type="button" onclick="prevTab(4)">Назад</button>
-      <button type="button" onclick="generateCharacterCard()">Сгенерировать карточку</button>
+      <button type="button" onclick="generateCharacterCard()">Сгенерировать карточку и отправить данные</button>
     </div>
   </div>
   
@@ -235,15 +252,7 @@
       showTab(prevTabId);
     }
     
-    // Обработчик для переключения вкладок при клике на кнопки навигации
-    document.querySelectorAll('.tab-button').forEach(button => {
-      button.addEventListener('click', () => {
-        const tabId = button.getAttribute('data-tab');
-        showTab(tabId);
-      });
-    });
-    
-    // Функция для генерации карточки персонажа
+    // Функция для генерации карточки персонажа и отправки данных
     function generateCharacterCard() {
       // Считываем данные из первой вкладки
       const firstName = document.getElementById('firstName').value.trim();
@@ -261,7 +270,7 @@
         }
       }
       
-      // Имитация анализа данных (здесь можно интегрировать вызов API ChatGPT)
+      // Имитация анализа данных (определяем характеристики по выбранному классу)
       let characteristics = '';
       if (characterClass === 'Воин') {
         characteristics = 'Сила: 8, Выносливость: 7, Интеллект: 3';
@@ -273,7 +282,7 @@
         characteristics = 'Характеристики не определены.';
       }
       
-      // Обработка изображения, если оно загружено
+      // Обработка изображения, если оно загружено (для предпросмотра)
       const imageInput = document.getElementById('characterImage');
       let imageURL = '';
       if (imageInput.files && imageInput.files[0]) {
@@ -290,6 +299,37 @@
         ${imageURL ? `<img src="${imageURL}" alt="Изображение персонажа" style="max-width:200px;">` : '<p>Изображение не загружено.</p>'}
       `;
       document.getElementById('characterCard').innerHTML = cardHTML;
+      
+      // Собираем данные для отправки
+      const dataToSend = {
+        firstName: firstName,
+        lastName: lastName,
+        age: age,
+        bodyType: bodyType,
+        characterClass: characterClass,
+        characteristics: characteristics
+        // Учтите, что отправка файла изображения требует другой обработки
+      };
+      
+      // Отправляем данные на внешний сервер (например, через Formspree)
+      // Замените URL ниже на ваш реальный endpoint от Formspree
+      fetch("https://formspree.io/f/yourFormId", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dataToSend)
+      })
+      .then(response => {
+        if (response.ok) {
+          alert("Данные успешно отправлены!");
+        } else {
+          alert("Ошибка при отправке данных.");
+        }
+      })
+      .catch(error => {
+        alert("Ошибка: " + error);
+      });
     }
   </script>
 </body>
