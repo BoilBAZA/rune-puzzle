@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Создание персонажа для настольной игры</title>
-  <!-- Подключаем декоративный шрифт для заголовков -->
-  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+  <!-- Подключаем готический, но читаемый шрифт Cinzel -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
   <style>
     /* Контейнер для центрирования контента */
     .container {
@@ -22,7 +22,7 @@
     }
     h1, h2, h3, h4 {
       text-align: center;
-      font-family: 'MedievalSharp', cursive;
+      font-family: 'Cinzel', serif;
     }
     .tab {
       display: none;
@@ -156,6 +156,10 @@
     #nextClass {
       right: 10px;
     }
+    /* Плавное изменение прозрачности для карусели */
+    #classContent {
+      transition: opacity 0.5s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -210,7 +214,7 @@
       <div id="carousel">
         <button id="prevClass">Назад</button>
         <div id="classContent" style="display: inline-block; width: 80%; vertical-align: middle;">
-          <!-- Динамически вставляемое содержимое -->
+          <!-- Содержимое обновляется динамически -->
         </div>
         <button id="nextClass">Далее</button>
       </div>
@@ -255,7 +259,7 @@
   </div>
   
   <script>
-    // Функции переключения вкладок
+    // Функции для переключения вкладок
     function showTab(tabId) {
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.classList.remove('active'));
@@ -287,7 +291,7 @@
           "Копьё (прочное, но с ржавым наконечником)"
         ],
         abilities: [
-          "Несокрушимый: В течение короткого времени получает значительное снижение урона от всех атак. Может игнорировать эффект, выбивающий из строя (1 раз за бой)",
+          "Несокрушимый: В течение короткого времени получает значительное снижение урона от всех атак. (1 раз за бой)",
           "Меткий выстрел: Следующий выстрел наносит урон в слабое место противника, значительно увеличивая эффективность. (1 раз за бой)"
         ]
       },
@@ -336,6 +340,18 @@
     // Объект для хранения выбранных данных по классу
     let userSelection = { classIndex: null, weapon: null, ability: null };
     
+    // Функция для плавного перехода между классами
+    function changeClass(newIndex) {
+      const container = document.getElementById("classContent");
+      container.style.opacity = 0;
+      setTimeout(() => {
+        currentClassIndex = newIndex;
+        renderClass();
+        container.style.opacity = 1;
+      }, 300);
+    }
+    
+    // Отрисовка данных о текущем классе с вариантами выбора
     function renderClass() {
       const classData = classes[currentClassIndex];
       const container = document.getElementById("classContent");
@@ -367,7 +383,7 @@
         </div>
       `;
       
-      // При изменении выбора оружия и способности проверяем, выбраны ли оба варианта
+      // Повесим обработчики для радио-кнопок, чтобы проверять выбор
       const weaponRadios = document.getElementsByName("weaponSelection");
       const abilityRadios = document.getElementsByName("abilitySelection");
       weaponRadios.forEach(radio => {
@@ -376,7 +392,7 @@
       abilityRadios.forEach(radio => {
         radio.addEventListener("change", checkSelections);
       });
-      // Сбрасываем ранее активированное значение для перехода
+      // Сбрасываем состояние перехода
       document.getElementById("tab2NextButton").disabled = true;
     }
     
@@ -384,7 +400,7 @@
       const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
       const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
       if (weaponSelected && abilitySelected) {
-        // Если оба варианта выбраны, сохраняем выбор автоматически
+        // Сохраняем выбор автоматически
         userSelection.classIndex = currentClassIndex;
         userSelection.weapon = weaponSelected.value;
         userSelection.ability = abilitySelected.value;
@@ -393,13 +409,11 @@
     }
     
     document.getElementById("prevClass").addEventListener("click", () => {
-      currentClassIndex = (currentClassIndex - 1 + classes.length) % classes.length;
-      renderClass();
+      changeClass((currentClassIndex - 1 + classes.length) % classes.length);
     });
     
     document.getElementById("nextClass").addEventListener("click", () => {
-      currentClassIndex = (currentClassIndex + 1) % classes.length;
-      renderClass();
+      changeClass((currentClassIndex + 1) % classes.length);
     });
     
     function goToNextTab() {
