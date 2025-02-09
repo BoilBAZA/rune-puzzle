@@ -12,7 +12,7 @@
       margin: 0;
       padding: 20px;
     }
-    h1 {
+    h1, h2, h3, h4 {
       text-align: center;
     }
     .tab {
@@ -63,24 +63,12 @@
       border: 1px solid #555;
       padding: 5px;
     }
-    .class-option {
-      border: 1px solid #555;
-      border-radius: 5px;
-      padding: 10px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      background-color: #333;
-    }
-    .class-option img {
-      max-width: 100px;
-      margin-right: 10px;
-    }
     .character-card {
       border: 2px solid #fff;
       border-radius: 5px;
       padding: 20px;
       background-color: #222;
+      text-align: center;
     }
     .navigation-buttons {
       text-align: center;
@@ -104,6 +92,37 @@
     }
     a {
       color: #00aaff;
+    }
+    /* Стили для радио-кнопок с галочкой */
+    .radio-label {
+      cursor: pointer;
+      padding: 5px;
+      border: 1px solid #555;
+      border-radius: 3px;
+      margin: 5px;
+      display: inline-block;
+    }
+    input[type="radio"] {
+      display: none;
+    }
+    input[type="radio"]:checked + .radio-label::after {
+      content: " ✓";
+      color: #0f0;
+      font-weight: bold;
+    }
+    /* Стили для карусели */
+    #carousel {
+      position: relative;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #carousel button {
+      background-color: #444;
+      border: none;
+      color: #fff;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
     }
   </style>
 </head>
@@ -152,47 +171,22 @@
     </div>
   </div>
   
-  <!-- Вкладка 2: Класс персонажа -->
+  <!-- Вкладка 2: Выбор класса персонажа (карасель) -->
   <div id="tab2" class="tab">
     <h2>Выбор класса персонажа</h2>
-    <form id="form-tab2">
-      <div class="class-option">
-        <input type="radio" id="warrior" name="characterClass" value="Воин" required>
-        <label for="warrior">
-          <strong>Воин</strong><br>
-          <img src="https://via.placeholder.com/100?text=Воин" alt="Воин"><br>
-          <em>Описание:</em> Сильный и выносливый.<br>
-          <em>Бонусы:</em> Высокая сила.<br>
-          <em>Дебаффы:</em> Медленная скорость.<br>
-          <em>Экипировка:</em> Меч, щит.
-        </label>
+    <div id="carousel">
+      <button id="prevClass" style="position: absolute; left: 10px; top: 50%;">Назад</button>
+      <div id="classContent" style="display: inline-block; width: 80%; vertical-align: middle;">
+        <!-- Динамически вставляемое содержимое -->
       </div>
-      <div class="class-option">
-        <input type="radio" id="mage" name="characterClass" value="Маг" required>
-        <label for="mage">
-          <strong>Маг</strong><br>
-          <img src="https://via.placeholder.com/100?text=Маг" alt="Маг"><br>
-          <em>Описание:</em> Владеет магией и знаниями.<br>
-          <em>Бонусы:</em> Высокий интеллект.<br>
-          <em>Дебаффы:</em> Физическая слабость.<br>
-          <em>Экипировка:</em> Посох, мантия.
-        </label>
-      </div>
-      <div class="class-option">
-        <input type="radio" id="rogue" name="characterClass" value="Разбойник" required>
-        <label for="rogue">
-          <strong>Разбойник</strong><br>
-          <img src="https://via.placeholder.com/100?text=Разбойник" alt="Разбойник"><br>
-          <em>Описание:</em> Ловкий и скрытный.<br>
-          <em>Бонусы:</em> Высокая ловкость.<br>
-          <em>Дебаффы:</em> Низкая защита.<br>
-          <em>Экипировка:</em> Кинжал, легкая броня.
-        </label>
-      </div>
-    </form>
+      <button id="nextClass" style="position: absolute; right: 10px; top: 50%;">Далее</button>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="selectClassButton" disabled>Выбрать этот класс</button>
+    </div>
     <div class="navigation-buttons">
       <button type="button" onclick="prevTab(2)">Назад</button>
-      <button type="button" onclick="nextTab(2)">Далее</button>
+      <button type="button" id="tab2NextButton" onclick="goToNextTab()" disabled>Далее</button>
     </div>
   </div>
   
@@ -230,7 +224,7 @@
   </div>
   
   <script>
-    // Функция для отображения нужной вкладки
+    // Функции переключения вкладок (такие же, как и ранее)
     function showTab(tabId) {
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.classList.remove('active'));
@@ -242,7 +236,6 @@
       document.querySelector('.tab-button[data-tab="'+tabId+'"]').classList.add('active');
     }
     
-    // Переход на следующую или предыдущую вкладку
     function nextTab(currentTabNumber) {
       const nextTabId = 'tab' + (currentTabNumber + 1);
       showTab(nextTabId);
@@ -252,49 +245,196 @@
       showTab(prevTabId);
     }
     
-    // Функция для генерации карточки персонажа и отправки данных
+    // --- Скрипт для карусели выбора класса ---
+    let classes = [
+      {
+        name: "Боец",
+        image: "https://i.imgur.com/KgTHgNr.jpg",
+        description: "Солдат, привыкший к крови и сражениям. Лишён связей и славы, но знает цену выживанию.",
+        weapons: [
+          "Одноручный меч (изношенный, но ещё пригодный к бою)",
+          "Копьё (прочное, но с ржавым наконечником)"
+        ],
+        abilities: [
+          "Несокрушимый: В течение короткого времени получает значительное снижение урона от всех атак. Может игнорировать эффект, который выбил бы его из строя (например, потеря равновесия, отбрасывание) (1 раз за бой)",
+          "Меткий выстрел: Следующий выстрел наносит урон в слабое место противника, значительно увеличивая его эффективность. Может пробить лёгкую защиту, укрытие или усложнить действия противника (например, попасть в руку, чтобы тот уронил оружие). (1 раз за бой)"
+        ]
+      },
+      {
+        name: "Дипломат/Бард",
+        image: "https://i.imgur.com/6zqVCKU.jpg",
+        description: "Человек слова, привыкший решать вопросы речью, а не оружием. Хотя некогда имел влияние, теперь он никто.",
+        weapons: [
+          "Тонкий кинжал (скрываемый, используется скорее для самообороны)",
+          "Лютня (можно использовать как музыкальный инструмент или как импровизированную дубину в крайнем случае)"
+        ],
+        abilities: [
+          "Финт ушами: Может убедить врага или NPC на короткое время отказаться от агрессивных действий. В бою может заставить противника на секунду замешкаться, что даёт шанс на инициативу. (1 раз за бой или локацию)",
+          "Боевой дух: Мотивирует союзника, временно увеличивая его решимость и боевой настрой. Может помочь снять страх или моральное давление, сделав персонажа менее восприимчивым к эффектам, связанным с подавлением воли. (1 раз за бой)"
+        ]
+      },
+      {
+        name: "Вор/Прохиндей",
+        image: "https://i.imgur.com/urHZMiB.jpg",
+        description: "Ловкач, привыкший решать вопросы хитростью. Живёт с риском, полагаясь на свою ловкость и удачу.",
+        weapons: [
+          "Короткий нож (быстро вытаскивается, но не для прямого боя)",
+          "Гибкий дротик (скрытый, но малополезный в драке)"
+        ],
+        abilities: [
+          "Тёмные руки: Может незаметно забрать у врага или NPC небольшой, но важный предмет. В бою способен выхватить оружие из рук противника или отвлечь его движением руки. (1 раз за бой или локацию)",
+          "Наглая ложь: Один раз за локацию может заставить NPC поверить в его ложь, даже если ситуация выглядит подозрительно. Может убедить кого-то, что он — важная персона, избежать проверки документов или проникнуть в охраняемое место. (1 раз за бой или локацию)"
+        ]
+      },
+      {
+        name: "Пьяница",
+        image: "https://i.imgur.com/YZWU9sb.jpg",
+        description: "Никто не принимает его всерьёз, но он уже прошёл через многое. В зависимости от напитка, может стать кем угодно.",
+        weapons: [
+          "Разбитая бутылка (как импровизированный нож)",
+          "Деревянная дубина (больше, как посох, но можно драться)"
+        ],
+        abilities: [
+          "Пьяная ярость: На короткое время становится менее чувствительным к боли и получает большую физическую мощь. Может игнорировать слабые удары или продолжать бой даже при серьёзном уроне. (1 раз за бой или локацию)",
+          "Мудрость в бокале: Один раз за локацию может вспомнить или случайно разгадать что-то важное (например, старую легенду, код от двери, слабое место врага). Может произнести настолько убедительную философскую речь, что даже враги задумаются о жизни."
+        ]
+      }
+    ];
+    
+    let currentClassIndex = 0;
+    let userSelection = { classIndex: null, weapon: null, ability: null };
+    
+    function renderClass() {
+      const classData = classes[currentClassIndex];
+      const container = document.getElementById("classContent");
+      container.innerHTML = `
+        <img src="${classData.image}" alt="${classData.name}" style="max-width:300px; display:block; margin: 0 auto;">
+        <h3>${classData.name}</h3>
+        <p>${classData.description}</p>
+        <div>
+          <h4>Оружие на выбор:</h4>
+          <div>
+            <input type="radio" id="weapon0" name="weaponSelection" value="0">
+            <label class="radio-label" for="weapon0">${classData.weapons[0]}</label>
+          </div>
+          <div>
+            <input type="radio" id="weapon1" name="weaponSelection" value="1">
+            <label class="radio-label" for="weapon1">${classData.weapons[1]}</label>
+          </div>
+        </div>
+        <div>
+          <h4>Уникальная способность:</h4>
+          <div>
+            <input type="radio" id="ability0" name="abilitySelection" value="0">
+            <label class="radio-label" for="ability0">${classData.abilities[0]}</label>
+          </div>
+          <div>
+            <input type="radio" id="ability1" name="abilitySelection" value="1">
+            <label class="radio-label" for="ability1">${classData.abilities[1]}</label>
+          </div>
+        </div>
+      `;
+      
+      // Сбрасываем выбор (при перелистывании сбрасываются ранее выбранные варианты)
+      document.getElementById("selectClassButton").disabled = true;
+      // Повесим обработчики для радио-кнопок, чтобы проверять, выбраны ли оба параметра
+      const weaponRadios = document.getElementsByName("weaponSelection");
+      const abilityRadios = document.getElementsByName("abilitySelection");
+      weaponRadios.forEach(radio => {
+        radio.addEventListener("change", checkSelections);
+      });
+      abilityRadios.forEach(radio => {
+        radio.addEventListener("change", checkSelections);
+      });
+    }
+    
+    function checkSelections() {
+      const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
+      const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
+      if (weaponSelected && abilitySelected) {
+        document.getElementById("selectClassButton").disabled = false;
+      }
+    }
+    
+    document.getElementById("prevClass").addEventListener("click", () => {
+      currentClassIndex = (currentClassIndex - 1 + classes.length) % classes.length;
+      renderClass();
+    });
+    
+    document.getElementById("nextClass").addEventListener("click", () => {
+      currentClassIndex = (currentClassIndex + 1) % classes.length;
+      renderClass();
+    });
+    
+    // При клике на "Выбрать этот класс" сохраняем выбор и разрешаем переход дальше
+    document.getElementById("selectClassButton").addEventListener("click", () => {
+      const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
+      const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
+      if (weaponSelected && abilitySelected) {
+        userSelection.classIndex = currentClassIndex;
+        userSelection.weapon = weaponSelected.value;
+        userSelection.ability = abilitySelected.value;
+        alert(`Выбран класс: ${classes[currentClassIndex].name}`);
+        document.getElementById("tab2NextButton").disabled = false;
+      } else {
+        alert("Пожалуйста, выберите оружие и уникальную способность.");
+      }
+    });
+    
+    function goToNextTab() {
+      nextTab(2);
+    }
+    
+    // Изначальный вывод первого класса
+    renderClass();
+    
+    // --- Генерация карточки персонажа (оставляем как было) ---
     function generateCharacterCard() {
-      // Считываем данные из первой вкладки
+      // Данные из вкладки 1
       const firstName = document.getElementById('firstName').value.trim();
       const lastName = document.getElementById('lastName').value.trim();
       const age = document.getElementById('age').value;
       const bodyType = document.getElementById('bodyType').value;
       
-      // Получаем выбранный класс из второй вкладки
-      const classRadios = document.getElementsByName('characterClass');
-      let characterClass = '';
-      for (let radio of classRadios) {
-        if (radio.checked) {
-          characterClass = radio.value;
-          break;
-        }
+      // Если пользователь выбрал класс во вкладке 2, то данные о нём из userSelection
+      let className = "Не выбран";
+      let weaponChosen = "Не выбрано";
+      let abilityChosen = "Не выбрано";
+      if (userSelection.classIndex !== null) {
+        const classData = classes[userSelection.classIndex];
+        className = classData.name;
+        weaponChosen = classData.weapons[userSelection.weapon];
+        abilityChosen = classData.abilities[userSelection.ability];
       }
       
-      // Имитация анализа данных (определяем характеристики по выбранному классу)
+      // Имитация анализа характеристик (пример)
       let characteristics = '';
-      if (characterClass === 'Воин') {
+      if (className === 'Боец') {
         characteristics = 'Сила: 8, Выносливость: 7, Интеллект: 3';
-      } else if (characterClass === 'Маг') {
-        characteristics = 'Сила: 3, Выносливость: 4, Интеллект: 9';
-      } else if (characterClass === 'Разбойник') {
+      } else if (className === 'Дипломат/Бард') {
+        characteristics = 'Сила: 4, Выносливость: 5, Интеллект: 8';
+      } else if (className === 'Вор/Прохиндей') {
         characteristics = 'Сила: 5, Выносливость: 5, Интеллект: 6';
+      } else if (className === 'Пьяница') {
+        characteristics = 'Сила: 6, Выносливость: 6, Интеллект: 4';
       } else {
         characteristics = 'Характеристики не определены.';
       }
       
-      // Обработка изображения, если оно загружено (для предпросмотра)
+      // Обработка изображения (предпросмотр)
       const imageInput = document.getElementById('characterImage');
       let imageURL = '';
       if (imageInput.files && imageInput.files[0]) {
         imageURL = URL.createObjectURL(imageInput.files[0]);
       }
       
-      // Формируем HTML для карточки персонажа
       const cardHTML = `
         <h3>${firstName} ${lastName}</h3>
         <p><strong>Возраст:</strong> ${age} лет</p>
         <p><strong>Телосложение:</strong> ${bodyType}</p>
-        <p><strong>Класс:</strong> ${characterClass}</p>
+        <p><strong>Класс:</strong> ${className}</p>
+        <p><strong>Выбранное оружие:</strong> ${weaponChosen}</p>
+        <p><strong>Уникальная способность:</strong> ${abilityChosen}</p>
         <p><strong>Характеристики:</strong> ${characteristics}</p>
         ${imageURL ? `<img src="${imageURL}" alt="Изображение персонажа" style="max-width:200px;">` : '<p>Изображение не загружено.</p>'}
       `;
@@ -306,14 +446,14 @@
         lastName: lastName,
         age: age,
         bodyType: bodyType,
-        characterClass: characterClass,
+        class: className,
+        weapon: weaponChosen,
+        ability: abilityChosen,
         characteristics: characteristics
-        // Учтите, что отправка файла изображения требует другой обработки
       };
       
-      // Отправляем данные на внешний сервер (например, через Formspree)
-      // Замените URL ниже на ваш реальный endpoint от Formspree
-      fetch("https://formspree.io/f/yourFormId", {
+      // Отправка данных на внешний сервер (например, Formspree)
+      fetch("https://formspree.io/f/yourFormId", {  // Замените на ваш endpoint
         method: "POST",
         headers: {
           "Content-Type": "application/json"
