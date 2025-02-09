@@ -71,7 +71,8 @@
     }
     input[type="text"],
     input[type="number"],
-    select {
+    select,
+    textarea {
       width: 100%;
       max-width: 400px;
       padding: 8px;
@@ -183,26 +184,6 @@
       max-width: 100%;
       border-radius: 5px;
     }
-    /* Стили для карточки персонажа – используем картинку шаблона с Imgur */
-    .card-template {
-      width: 800px;
-      height: 450px;
-      background-image: url('https://i.imgur.com/Epxa6Gr.jpg');
-      background-size: cover;
-      background-position: center;
-      margin: 0 auto;
-      position: relative;
-    }
-    .player-image {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 50%;
-      max-height: 50%;
-      border: 1px solid #fff;
-      border-radius: 5px;
-    }
   </style>
 </head>
 <body>
@@ -215,7 +196,7 @@
       <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
       <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
       <button type="button" class="tab-button" data-tab="tab3">Внешность персонажа</button>
-      <button type="button" class="tab-button" data-tab="tab4">Карточка персонажа</button>
+      <button type="button" class="tab-button" data-tab="tab4">История персонажа</button>
     </div>
     
     <!-- Вкладка 1: Основные данные -->
@@ -292,15 +273,63 @@
       </div>
     </div>
     
-    <!-- Вкладка 4: Карточка персонажа (упрощённая) -->
+    <!-- Вкладка 4: История персонажа -->
     <div id="tab4" class="tab">
-      <h2>Карточка персонажа</h2>
-      <div id="characterCard" class="character-card">
-        <!-- Здесь будет сформирована карточка с изображением -->
-      </div>
+      <h2>История персонажа</h2>
+      <form id="form-history">
+        <!-- Поле для истории родителей -->
+        <label for="parentsHistory">Кем были родители</label>
+        <textarea id="parentsHistory" name="parentsHistory" placeholder="Опишите краткую историю происхождения родителей, кем были, чем занимались" required></textarea>
+        
+        <!-- Выбор наличия братьев/сестёр -->
+        <label for="siblingsStatus">Есть ли братья или сестры</label>
+        <select id="siblingsStatus" name="siblingsStatus" required onchange="handleSiblingsChange()">
+          <option value="">Выберите вариант</option>
+          <option value="allAlive">Есть, все живы</option>
+          <option value="allDead">Есть, но все мертвы</option>
+          <option value="someDead">Есть, но кто-то из них мертв</option>
+          <option value="none">Отсутствуют</option>
+        </select>
+        <div id="siblingsDetails" style="display:none; text-align:center; margin-top:10px;">
+          <button type="button" onclick="enterSiblingsInfo()">Ввести информацию о братьях/сестрах</button>
+          <p id="siblingsInfoDisplay" class="hint"></p>
+          <input type="hidden" id="siblingsInfo" name="siblingsInfo">
+        </div>
+        
+        <!-- История детства персонажа -->
+        <label for="childhood">Детство персонажа</label>
+        <textarea id="childhood" name="childhood" placeholder="Опишите, чем увлекался и интересовался персонаж в детстве" required></textarea>
+        
+        <!-- Друзья детства -->
+        <label for="friendsStatus">Были ли у персонажа друзья детства?</label>
+        <select id="friendsStatus" name="friendsStatus" required onchange="handleFriendsChange()">
+          <option value="">Выберите вариант</option>
+          <option value="yes">Да</option>
+          <option value="no">Нет</option>
+        </select>
+        <div id="friendsDetails" style="display:none; text-align:center; margin-top:10px;">
+          <button type="button" onclick="enterFriendsInfo()">Ввести информацию о друзьях детства</button>
+          <p id="friendsInfoDisplay" class="hint"></p>
+          <input type="hidden" id="friendsInfo" name="friendsInfo">
+        </div>
+        
+        <!-- История работы -->
+        <label for="workHistory">Кем он работал</label>
+        <textarea id="workHistory" name="workHistory" placeholder="Опишите, чем занимался персонаж, кем он работал" required></textarea>
+        
+        <!-- Дополнительные поля для раскрытия личности -->
+        <label for="significantEvents">Значимые события в жизни</label>
+        <textarea id="significantEvents" name="significantEvents" placeholder="Опишите важные события, повлиявшие на жизнь персонажа"></textarea>
+        
+        <label for="motives">Мотивы и цели</label>
+        <textarea id="motives" name="motives" placeholder="Опишите, чего стремится достичь персонаж, его цели"></textarea>
+        
+        <label for="characterTraits">Особенности характера</label>
+        <textarea id="characterTraits" name="characterTraits" placeholder="Опишите характер, привычки, сильные и слабые стороны персонажа"></textarea>
+      </form>
       <div class="navigation-buttons">
         <button type="button" onclick="prevTab(4)">Назад</button>
-        <button type="button" onclick="generateCharacterCard()">Сформировать карточку</button>
+        <button type="button" onclick="saveCharacterHistory()">Сохранить историю</button>
       </div>
     </div>
   </div>
@@ -475,26 +504,65 @@
       nextTab(2);
     }
     
-    // Изначальный вывод первого класса
-    renderClass();
-    
-    // --- Генерация карточки персонажа (упрощённая) ---
-    function generateCharacterCard() {
-      const imageInput = document.getElementById('characterImage');
-      let playerImageURL = '';
-      if (imageInput.files && imageInput.files[0]) {
-        playerImageURL = URL.createObjectURL(imageInput.files[0]);
+    // --- Функции для обработки информации о братьях/сестрах ---
+    function handleSiblingsChange() {
+      const siblingsStatus = document.getElementById('siblingsStatus').value;
+      const detailsDiv = document.getElementById('siblingsDetails');
+      if (siblingsStatus && siblingsStatus !== 'none') {
+        detailsDiv.style.display = 'block';
+      } else {
+        detailsDiv.style.display = 'none';
+        document.getElementById('siblingsInfo').value = '';
+        document.getElementById('siblingsInfoDisplay').innerText = '';
       }
-      
-      // Формируем карточку как div с фоновым изображением шаблона
-      const cardHTML = `
-        <div class="card-template">
-          ${ playerImageURL 
-              ? `<img src="${playerImageURL}" alt="Изображение персонажа" class="player-image">`
-              : '<p style="color:#fff; padding-top:200px;">Изображение не загружено.</p>' }
-        </div>
-      `;
-      document.getElementById('characterCard').innerHTML = cardHTML;
+    }
+    
+    function enterSiblingsInfo() {
+      const info = prompt("Введите информацию о братьях/сестрах (имена, краткая история, а также, если необходимо, как умерли или кто из них мертв):");
+      if (info !== null) {
+        document.getElementById('siblingsInfo').value = info;
+        document.getElementById('siblingsInfoDisplay').innerText = info;
+      }
+    }
+    
+    // --- Функции для обработки информации о детских друзьях ---
+    function handleFriendsChange() {
+      const friendsStatus = document.getElementById('friendsStatus').value;
+      const detailsDiv = document.getElementById('friendsDetails');
+      if (friendsStatus === 'yes') {
+        detailsDiv.style.display = 'block';
+      } else {
+        detailsDiv.style.display = 'none';
+        document.getElementById('friendsInfo').value = '';
+        document.getElementById('friendsInfoDisplay').innerText = '';
+      }
+    }
+    
+    function enterFriendsInfo() {
+      const info = prompt("Введите информацию о детских друзьях (имена, чем занимались, поддерживают ли контакты и т.д.):");
+      if (info !== null) {
+        document.getElementById('friendsInfo').value = info;
+        document.getElementById('friendsInfoDisplay').innerText = info;
+      }
+    }
+    
+    // Функция для сохранения истории персонажа
+    function saveCharacterHistory() {
+      const historyData = {
+        parentsHistory: document.getElementById('parentsHistory').value.trim(),
+        siblingsStatus: document.getElementById('siblingsStatus').value,
+        siblingsInfo: document.getElementById('siblingsInfo').value.trim(),
+        childhood: document.getElementById('childhood').value.trim(),
+        friendsStatus: document.getElementById('friendsStatus').value,
+        friendsInfo: document.getElementById('friendsInfo').value.trim(),
+        workHistory: document.getElementById('workHistory').value.trim(),
+        significantEvents: document.getElementById('significantEvents').value.trim(),
+        motives: document.getElementById('motives').value.trim(),
+        characterTraits: document.getElementById('characterTraits').value.trim()
+      };
+      // Для демонстрации можно вывести данные в консоль или отправить на сервер
+      console.log("История персонажа:", historyData);
+      alert("История персонажа сохранена!");
     }
   </script>
   
