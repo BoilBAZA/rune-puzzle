@@ -3,16 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>Создание персонажа для настольной игры</title>
-  <!-- Подключаем готический, но читаемый шрифт Cinzel -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+  <!-- Подключаем шрифт Brahms Gotisch Cyrillic (скачайте файлы шрифта и разместите их в проекте) -->
   <style>
-    /* Контейнер для центрирования контента */
+    @font-face {
+      font-family: 'Brahms Gotisch Cyrillic';
+      src: url('BrahmsGotischCyrillic.woff2') format('woff2'),
+           url('BrahmsGotischCyrillic.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    /* Контейнер для центрирования контента с «средневековым» оформлением */
     .container {
       max-width: 800px;
-      margin: 0 auto;
+      margin: 30px auto;
       padding: 20px;
+      background: linear-gradient(135deg, #3c3c3c, #1a1a1a);
+      border: 3px solid #8B4513; /* коричневый, напоминающий дерево */
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(139, 69, 19, 0.7);
     }
-    /* Основные стили для темного оформления в стиле средневековья */
+    /* Основные стили для темного оформления */
     body {
       font-family: Arial, sans-serif;
       background-color: #000;
@@ -20,17 +33,18 @@
       margin: 0;
       padding: 0;
     }
+    /* Заголовки в готическом стиле */
     h1, h2, h3, h4 {
       text-align: center;
-      font-family: 'Cinzel', serif;
+      font-family: 'Brahms Gotisch Cyrillic', serif;
     }
     .tab {
       display: none;
       padding: 20px;
       background: #222;
       margin-bottom: 20px;
+      border: 2px solid #8B4513;
       border-radius: 5px;
-      border: 1px solid #444;
     }
     .tab.active {
       display: block;
@@ -43,13 +57,14 @@
       padding: 10px 15px;
       margin: 0 5px;
       border: none;
-      background-color: #444;
+      background-color: #5a3e2b;
       color: #fff;
       border-radius: 5px;
       cursor: pointer;
+      box-shadow: 0 0 5px rgba(139,69,19,0.8);
     }
     .tabs-navigation button.active {
-      background-color: #666;
+      background-color: #8B4513;
     }
     label {
       display: block;
@@ -77,7 +92,7 @@
       display: none;
     }
     .character-card {
-      border: 2px solid #fff;
+      border: 2px solid #8B4513;
       border-radius: 5px;
       padding: 20px;
       background-color: #222;
@@ -93,8 +108,9 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      background-color: #444;
+      background-color: #5a3e2b;
       color: #fff;
+      box-shadow: 0 0 5px rgba(139,69,19,0.8);
     }
     .navigation-buttons button:hover {
       opacity: 0.8;
@@ -116,6 +132,7 @@
       display: inline-block;
       max-width: 400px;
       text-align: center;
+      background-color: #333;
     }
     input[type="radio"] {
       display: none;
@@ -132,10 +149,11 @@
       margin-bottom: 20px;
       background-color: #000;
       padding: 20px;
+      border: 2px solid #8B4513;
       border-radius: 5px;
     }
     #carousel button {
-      background-color: #444;
+      background-color: #5a3e2b;
       border: none;
       color: #fff;
       padding: 10px;
@@ -144,6 +162,7 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
+      box-shadow: 0 0 5px rgba(139,69,19,0.8);
     }
     #prevClass {
       left: 10px;
@@ -243,7 +262,7 @@
         <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
       </p>
       <form id="form-tab3">
-        <!-- Область для загрузки файла с поддержкой drag and drop -->
+        <!-- Область для загрузки файла с поддержкой drag & drop -->
         <div id="dropArea">
           <img src="https://i.imgur.com/BcqKIDB.jpg" alt="Нажмите для выбора файла или перетащите файл сюда">
           <p class="hint">Нажмите на картинку или перетащите файл сюда</p>
