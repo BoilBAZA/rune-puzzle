@@ -13,7 +13,7 @@
       font-style: normal;
     }
   </style>
-  <!-- Подключаем jsPDF (версия 2.5.1) -->
+  <!-- Подключаем jsPDF (если понадобится в будущем, но сейчас формируем текстовый файл) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     /* Фон для всего сайта */
@@ -326,12 +326,13 @@
       </form>
       <div class="navigation-buttons">
         <button type="button" onclick="prevTab(4)">Назад</button>
-        <button type="button" onclick="generatePDF()">Завершить</button>
+        <!-- При нажатии на кнопку «Завершить» формируется текстовый файл -->
+        <button type="button" onclick="generateTextFile()">Завершить</button>
       </div>
     </div>
   </div>
   
-  <!-- Скрипт для переключения вкладок и работы карусели -->
+  <!-- Скрипты для переключения вкладок и карусели -->
   <script>
     // Переключение вкладок по верхним кнопкам
     document.querySelectorAll('.tab-button').forEach(button => {
@@ -503,23 +504,18 @@
       container.style.display = (status === 'yes') ? 'block' : 'none';
     }
     
-    // Функция для генерации PDF (с использованием jsPDF)
-    async function generatePDF() {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-      let y = 10;
-      function addSection(title, text) {
-        pdf.setFontSize(14);
-        pdf.text(title, 10, y);
-        y += 7;
-        pdf.setFontSize(12);
-        pdf.text(text || "—", 10, y);
-        y += 10;
+    // Функция для генерации текстового файла со всей информацией
+    async function generateTextFile() {
+      let text = "";
+      function addSection(title, content) {
+        text += title + "\n" + (content || "—") + "\n\n";
       }
+      
       addSection("Имя персонажа", document.getElementById('firstName').value.trim());
       addSection("Фамилия персонажа", document.getElementById('lastName').value.trim());
       addSection("Возраст", document.getElementById('age').value.trim());
       addSection("Телосложение", document.getElementById('bodyType').value);
+      
       let className = "";
       let weaponChosen = "";
       let abilityChosen = "";
@@ -532,6 +528,7 @@
       addSection("Класс персонажа", className);
       addSection("Выбранное оружие", weaponChosen);
       addSection("Уникальная способность", abilityChosen);
+      
       addSection("История родителей", document.getElementById('parentsHistory').value.trim());
       addSection("Братья/сёстры (статус)", document.getElementById('siblingsStatus').value);
       if (document.getElementById('siblingsStatus').value !== "none") {
@@ -550,7 +547,7 @@
       addSection("Мотивы и цели", document.getElementById('motives').value.trim());
       addSection("Особенности характера", document.getElementById('characterTraits').value.trim());
       
-      // Обработка изображения: если прикреплено, добавляем ссылку на скачивание (data URL)
+      // Обработка изображения: если прикреплено, добавляем ссылку (data URL)
       const fileInput = document.getElementById('characterImage');
       if (fileInput.files && fileInput.files[0]) {
         const base64Image = await new Promise((resolve, reject) => {
@@ -559,12 +556,21 @@
           reader.onerror = reject;
           reader.readAsDataURL(fileInput.files[0]);
         });
-        pdf.setFontSize(14);
-        pdf.textWithLink("Скачать изображение персонажа", 10, y, { url: base64Image });
-        y += 10;
+        addSection("Ссылка на изображение персонажа", base64Image);
+      } else {
+        addSection("Ссылка на изображение персонажа", "Изображение не загружено.");
       }
       
-      pdf.save("character.pdf");
+      // Создаём Blob и инициируем скачивание текстового файла
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "character.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   </script>
   
