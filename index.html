@@ -67,7 +67,7 @@
     label {
       display: block;
       margin-top: 10px;
-      text-align: left;
+      text-align: center;
     }
     input[type="text"],
     input[type="number"],
@@ -277,12 +277,12 @@
     <div id="tab4" class="tab">
       <h2>История персонажа</h2>
       <form id="form-history">
-        <!-- Поле для истории родителей -->
+        <!-- Родители -->
         <label for="parentsHistory">Кем были родители</label>
         <textarea id="parentsHistory" name="parentsHistory" placeholder="Опишите краткую историю происхождения родителей, кем были, чем занимались" required></textarea>
         
-        <!-- Выбор наличия братьев/сестёр -->
-        <label for="siblingsStatus">Есть ли братья или сестры</label>
+        <!-- Братья/сестры -->
+        <label for="siblingsStatus">Есть ли братья или сёстры</label>
         <select id="siblingsStatus" name="siblingsStatus" required onchange="handleSiblingsChange()">
           <option value="">Выберите вариант</option>
           <option value="allAlive">Есть, все живы</option>
@@ -290,13 +290,11 @@
           <option value="someDead">Есть, но кто-то из них мертв</option>
           <option value="none">Отсутствуют</option>
         </select>
-        <div id="siblingsDetails" style="display:none; text-align:center; margin-top:10px;">
-          <button type="button" onclick="enterSiblingsInfo()">Ввести информацию о братьях/сестрах</button>
-          <p id="siblingsInfoDisplay" class="hint"></p>
-          <input type="hidden" id="siblingsInfo" name="siblingsInfo">
+        <div id="siblingsExtra" style="display:none; margin-top:10px;">
+          <!-- Здесь будут динамически появляться текстовые поля для информации о братьях/сёстрах -->
         </div>
         
-        <!-- История детства персонажа -->
+        <!-- Детство -->
         <label for="childhood">Детство персонажа</label>
         <textarea id="childhood" name="childhood" placeholder="Опишите, чем увлекался и интересовался персонаж в детстве" required></textarea>
         
@@ -307,17 +305,16 @@
           <option value="yes">Да</option>
           <option value="no">Нет</option>
         </select>
-        <div id="friendsDetails" style="display:none; text-align:center; margin-top:10px;">
-          <button type="button" onclick="enterFriendsInfo()">Ввести информацию о друзьях детства</button>
-          <p id="friendsInfoDisplay" class="hint"></p>
-          <input type="hidden" id="friendsInfo" name="friendsInfo">
+        <div id="friendsExtra" style="display:none; margin-top:10px;">
+          <label for="friendsInfo" style="text-align: center;">Информация о друзьях детства</label>
+          <textarea id="friendsInfo" name="friendsInfo" placeholder="Опишите, чем занимались друзья детства, поддерживают ли контакты и т.д."></textarea>
         </div>
         
-        <!-- История работы -->
+        <!-- Работа -->
         <label for="workHistory">Кем он работал</label>
         <textarea id="workHistory" name="workHistory" placeholder="Опишите, чем занимался персонаж, кем он работал" required></textarea>
         
-        <!-- Дополнительные поля для раскрытия личности -->
+        <!-- Дополнительные поля -->
         <label for="significantEvents">Значимые события в жизни</label>
         <textarea id="significantEvents" name="significantEvents" placeholder="Опишите важные события, повлиявшие на жизнь персонажа"></textarea>
         
@@ -334,27 +331,23 @@
     </div>
   </div>
   
-  <!-- Скрипт для переключения вкладок и работы карусели -->
+  <!-- Скрипты для переключения вкладок и карусели -->
   <script>
-    // Переключение вкладок по нажатию на верхние кнопки
+    // Переключение вкладок по верхним кнопкам
     document.querySelectorAll('.tab-button').forEach(button => {
       button.addEventListener('click', () => {
         const tabId = button.getAttribute('data-tab');
         showTab(tabId);
       });
     });
-    
     function showTab(tabId) {
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.classList.remove('active'));
-      
       const tabButtons = document.querySelectorAll('.tab-button');
       tabButtons.forEach(btn => btn.classList.remove('active'));
-      
       document.getElementById(tabId).classList.add('active');
       document.querySelector('.tab-button[data-tab="'+tabId+'"]').classList.add('active');
     }
-    
     function nextTab(currentTabNumber) {
       const nextTabId = 'tab' + (currentTabNumber + 1);
       showTab(nextTabId);
@@ -364,7 +357,7 @@
       showTab(prevTabId);
     }
     
-    // --- Скрипт для карусели выбора класса ---
+    // --- Карусель выбора класса ---
     let classes = [
       {
         name: "Боец",
@@ -419,12 +412,8 @@
         ]
       }
     ];
-    
     let currentClassIndex = 0;
-    // Объект для хранения выбранных данных по классу
     let userSelection = { classIndex: null, weapon: null, ability: null };
-    
-    // Функция для плавного перехода между классами
     function changeClass(newIndex) {
       const container = document.getElementById("classContent");
       container.style.opacity = 0;
@@ -434,8 +423,6 @@
         container.style.opacity = 1;
       }, 300);
     }
-    
-    // Отрисовка данных о текущем классе с вариантами выбора
     function renderClass() {
       const classData = classes[currentClassIndex];
       const container = document.getElementById("classContent");
@@ -466,101 +453,83 @@
           </div>
         </div>
       `;
-      
-      // Повесим обработчики для радио-кнопок для проверки выбора
       const weaponRadios = document.getElementsByName("weaponSelection");
       const abilityRadios = document.getElementsByName("abilitySelection");
-      weaponRadios.forEach(radio => {
-        radio.addEventListener("change", checkSelections);
-      });
-      abilityRadios.forEach(radio => {
-        radio.addEventListener("change", checkSelections);
-      });
-      // Сбрасываем состояние перехода
+      weaponRadios.forEach(radio => { radio.addEventListener("change", checkSelections); });
+      abilityRadios.forEach(radio => { radio.addEventListener("change", checkSelections); });
       document.getElementById("tab2NextButton").disabled = true;
     }
-    
     function checkSelections() {
       const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
       const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
       if (weaponSelected && abilitySelected) {
-        // Сохраняем выбор автоматически
         userSelection.classIndex = currentClassIndex;
         userSelection.weapon = weaponSelected.value;
         userSelection.ability = abilitySelected.value;
         document.getElementById("tab2NextButton").disabled = false;
       }
     }
-    
     document.getElementById("prevClass").addEventListener("click", () => {
       changeClass((currentClassIndex - 1 + classes.length) % classes.length);
     });
-    
     document.getElementById("nextClass").addEventListener("click", () => {
       changeClass((currentClassIndex + 1) % classes.length);
     });
-    
     function goToNextTab() {
       nextTab(2);
     }
     
-    // --- Функции для обработки информации о братьях/сестрах ---
+    // --- Обработка информации о братьях/сёстрах ---
     function handleSiblingsChange() {
-      const siblingsStatus = document.getElementById('siblingsStatus').value;
-      const detailsDiv = document.getElementById('siblingsDetails');
-      if (siblingsStatus && siblingsStatus !== 'none') {
-        detailsDiv.style.display = 'block';
-      } else {
-        detailsDiv.style.display = 'none';
-        document.getElementById('siblingsInfo').value = '';
-        document.getElementById('siblingsInfoDisplay').innerText = '';
+      const status = document.getElementById('siblingsStatus').value;
+      const container = document.getElementById('siblingsExtra');
+      let html = '';
+      if (status === 'allAlive') {
+        html = `
+          <label style="text-align:center;">Информация о братьях/сёстрах (все живы)</label>
+          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
+        `;
+      } else if (status === 'allDead') {
+        html = `
+          <label style="text-align:center;">Информация о братьях/сёстрах (все мертвы)</label>
+          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
+          <label style="text-align:center;">Как умерли братья/сёстры</label>
+          <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, как умерли"></textarea>
+        `;
+      } else if (status === 'someDead') {
+        html = `
+          <label style="text-align:center;">Информация о братьях/сёстрах</label>
+          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
+          <label style="text-align:center;">Укажите, кто из них мертв и как</label>
+          <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, кто умер и как"></textarea>
+        `;
       }
+      container.innerHTML = html;
+      container.style.display = (status && status !== 'none') ? 'block' : 'none';
     }
     
-    function enterSiblingsInfo() {
-      const info = prompt("Введите информацию о братьях/сестрах (имена, краткая история, а также, если необходимо, как умерли или кто из них мертв):");
-      if (info !== null) {
-        document.getElementById('siblingsInfo').value = info;
-        document.getElementById('siblingsInfoDisplay').innerText = info;
-      }
-    }
-    
-    // --- Функции для обработки информации о детских друзьях ---
+    // --- Обработка информации о друзьях детства ---
     function handleFriendsChange() {
-      const friendsStatus = document.getElementById('friendsStatus').value;
-      const detailsDiv = document.getElementById('friendsDetails');
-      if (friendsStatus === 'yes') {
-        detailsDiv.style.display = 'block';
-      } else {
-        detailsDiv.style.display = 'none';
-        document.getElementById('friendsInfo').value = '';
-        document.getElementById('friendsInfoDisplay').innerText = '';
-      }
+      const status = document.getElementById('friendsStatus').value;
+      const container = document.getElementById('friendsExtra');
+      container.style.display = (status === 'yes') ? 'block' : 'none';
     }
     
-    function enterFriendsInfo() {
-      const info = prompt("Введите информацию о детских друзьях (имена, чем занимались, поддерживают ли контакты и т.д.):");
-      if (info !== null) {
-        document.getElementById('friendsInfo').value = info;
-        document.getElementById('friendsInfoDisplay').innerText = info;
-      }
-    }
-    
-    // Функция для сохранения истории персонажа
+    // Функция для сохранения истории персонажа (можно доработать отправку на сервер)
     function saveCharacterHistory() {
       const historyData = {
         parentsHistory: document.getElementById('parentsHistory').value.trim(),
         siblingsStatus: document.getElementById('siblingsStatus').value,
-        siblingsInfo: document.getElementById('siblingsInfo').value.trim(),
+        siblingsInfo: document.getElementById('siblingsInfo') ? document.getElementById('siblingsInfo').value.trim() : '',
+        siblingsDeathInfo: document.getElementById('siblingsDeathInfo') ? document.getElementById('siblingsDeathInfo').value.trim() : '',
         childhood: document.getElementById('childhood').value.trim(),
         friendsStatus: document.getElementById('friendsStatus').value,
-        friendsInfo: document.getElementById('friendsInfo').value.trim(),
+        friendsInfo: document.getElementById('friendsInfo') ? document.getElementById('friendsInfo').value.trim() : '',
         workHistory: document.getElementById('workHistory').value.trim(),
         significantEvents: document.getElementById('significantEvents').value.trim(),
         motives: document.getElementById('motives').value.trim(),
         characterTraits: document.getElementById('characterTraits').value.trim()
       };
-      // Для демонстрации можно вывести данные в консоль или отправить на сервер
       console.log("История персонажа:", historyData);
       alert("История персонажа сохранена!");
     }
@@ -570,24 +539,9 @@
   <script>
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('characterImage');
-    
-    // При клике по области запускаем выбор файла
-    dropArea.addEventListener('click', () => {
-      fileInput.click();
-    });
-    
-    // При перетаскивании файла изменяем стиль
-    dropArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropArea.style.borderColor = "#aaa";
-    });
-    
-    dropArea.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      dropArea.style.borderColor = "#fff";
-    });
-    
-    // Обработка события drop
+    dropArea.addEventListener('click', () => { fileInput.click(); });
+    dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.borderColor = "#aaa"; });
+    dropArea.addEventListener('dragleave', (e) => { e.preventDefault(); dropArea.style.borderColor = "#fff"; });
     dropArea.addEventListener('drop', (e) => {
       e.preventDefault();
       dropArea.style.borderColor = "#fff";
@@ -603,8 +557,6 @@
         reader.readAsDataURL(files[0]);
       }
     });
-    
-    // Обработка выбора файла через диалоговое окно
     fileInput.addEventListener('change', () => {
       if(fileInput.files.length) {
         const reader = new FileReader();
@@ -618,12 +570,10 @@
   
   <!-- Подключение YouTube IFrame API для автопроигрывания саундтрека -->
   <script>
-    // Загружаем API асинхронно
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    
     var player;
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
@@ -638,18 +588,14 @@
           'rel': 0,
           'showinfo': 0
         },
-        events: {
-          'onReady': onPlayerReady
-        }
+        events: { 'onReady': onPlayerReady }
       });
     }
-    
     function onPlayerReady(event) {
-      event.target.setVolume(5); // Очень тихая громкость (5%)
+      event.target.setVolume(5);
       event.target.playVideo();
     }
   </script>
-  <!-- Скрытый контейнер для YouTube плеера -->
   <div id="player" style="display: none;"></div>
 </body>
 </html>
