@@ -13,7 +13,18 @@
       font-style: normal;
     }
   </style>
+  <!-- Подключаем jsPDF (версия 2.5.1) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
+    /* Фон для всего сайта */
+    body {
+      font-family: Arial, sans-serif;
+      background: url('https://i.imgur.com/WvxgzdK.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
     /* Контейнер для центрирования контента */
     .container {
       max-width: 800px;
@@ -22,14 +33,6 @@
       background: #000;
       border: 2px solid #fff;
       border-radius: 5px;
-    }
-    /* Основные стили – чистые черно-белые тона */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #000;
-      color: #fff;
-      margin: 0;
-      padding: 0;
     }
     /* Заголовки в готическом стиле */
     h1, h2, h3, h4 {
@@ -188,7 +191,7 @@
 </head>
 <body>
   <div class="container">
-    <!-- Изменён заголовок -->
+    <!-- Заголовок -->
     <h1>Невидимая Грань</h1>
     
     <!-- Верхняя навигация по вкладкам -->
@@ -203,24 +206,16 @@
     <div id="tab1" class="tab active">
       <h2>Основные данные</h2>
       <form id="form-tab1">
-        <label for="firstName">Имя персонажа
-          <span class="hint">(Например: Фридрих, Ярослав, Лех)</span>
-        </label>
+        <label for="firstName">Имя персонажа<br><span class="hint">(Например: Фридрих, Ярослав, Лех)</span></label>
         <input type="text" id="firstName" name="firstName" placeholder="Например: Фридрих" required>
         
-        <label for="lastName">Фамилия персонажа
-          <span class="hint">(Например: Вацлав, Гюнтер, Мариуш)</span>
-        </label>
+        <label for="lastName">Фамилия персонажа<br><span class="hint">(Например: Вацлав, Гюнтер, Мариуш)</span></label>
         <input type="text" id="lastName" name="lastName" placeholder="Например: Вацлав" required>
         
-        <label for="age">Возраст (в годах)
-          <span class="hint">(Введите возраст персонажа)</span>
-        </label>
+        <label for="age">Возраст (в годах)<br><span class="hint">(Введите возраст персонажа)</span></label>
         <input type="number" id="age" name="age" min="0" placeholder="Например: 25" required>
         
-        <label for="bodyType">Телосложение
-          <span class="hint">(Выберите телосложение персонажа)</span>
-        </label>
+        <label for="bodyType">Телосложение<br><span class="hint">(Выберите телосложение персонажа)</span></label>
         <select id="bodyType" name="bodyType" required>
           <option value="">Выберите телосложение</option>
           <option value="Худощавое">Худощавое</option>
@@ -234,13 +229,13 @@
       </div>
     </div>
     
-    <!-- Вкладка 2: Выбор класса персонажа (карасель) -->
+    <!-- Вкладка 2: Выбор класса персонажа -->
     <div id="tab2" class="tab">
       <h2>Выбор класса персонажа</h2>
       <div id="carousel">
         <button id="prevClass">Назад</button>
         <div id="classContent" style="display: inline-block; width: 80%; vertical-align: middle;">
-          <!-- Содержимое обновляется динамически -->
+          <!-- Данные о классе обновляются динамически -->
         </div>
         <button id="nextClass">Далее</button>
       </div>
@@ -260,7 +255,7 @@
         <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
       </p>
       <form id="form-tab3">
-        <!-- Область для загрузки файла с поддержкой drag & drop -->
+        <!-- Область для загрузки файла (drag & drop) -->
         <div id="dropArea">
           <img src="https://i.imgur.com/BcqKIDB.jpg" alt="Нажмите для выбора файла или перетащите файл сюда">
           <p class="hint">Нажмите на картинку или перетащите файл сюда</p>
@@ -281,7 +276,7 @@
         <label for="parentsHistory">Кем были родители</label>
         <textarea id="parentsHistory" name="parentsHistory" placeholder="Опишите краткую историю происхождения родителей, кем были, чем занимались" required></textarea>
         
-        <!-- Братья/сестры -->
+        <!-- Братья/сёстры -->
         <label for="siblingsStatus">Есть ли братья или сёстры</label>
         <select id="siblingsStatus" name="siblingsStatus" required onchange="handleSiblingsChange()">
           <option value="">Выберите вариант</option>
@@ -291,7 +286,12 @@
           <option value="none">Отсутствуют</option>
         </select>
         <div id="siblingsExtra" style="display:none; margin-top:10px;">
-          <!-- Здесь будут динамически появляться текстовые поля для информации о братьях/сёстрах -->
+          <label style="text-align:center;">Информация о братьях/сёстрах</label>
+          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
+          <div id="siblingsDeathDiv" style="display:none;">
+            <label style="text-align:center;">Информация о смерти</label>
+            <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, как умерли"></textarea>
+          </div>
         </div>
         
         <!-- Детство -->
@@ -306,7 +306,7 @@
           <option value="no">Нет</option>
         </select>
         <div id="friendsExtra" style="display:none; margin-top:10px;">
-          <label for="friendsInfo" style="text-align: center;">Информация о друзьях детства</label>
+          <label style="text-align:center;">Информация о друзьях детства</label>
           <textarea id="friendsInfo" name="friendsInfo" placeholder="Опишите, чем занимались друзья детства, поддерживают ли контакты и т.д."></textarea>
         </div>
         
@@ -326,12 +326,12 @@
       </form>
       <div class="navigation-buttons">
         <button type="button" onclick="prevTab(4)">Назад</button>
-        <button type="button" onclick="saveCharacterHistory()">Сохранить историю</button>
+        <button type="button" onclick="generatePDF()">Завершить</button>
       </div>
     </div>
   </div>
   
-  <!-- Скрипты для переключения вкладок и карусели -->
+  <!-- Скрипт для переключения вкладок и работы карусели -->
   <script>
     // Переключение вкладок по верхним кнопкам
     document.querySelectorAll('.tab-button').forEach(button => {
@@ -341,20 +341,16 @@
       });
     });
     function showTab(tabId) {
-      const tabs = document.querySelectorAll('.tab');
-      tabs.forEach(tab => tab.classList.remove('active'));
-      const tabButtons = document.querySelectorAll('.tab-button');
-      tabButtons.forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       document.querySelector('.tab-button[data-tab="'+tabId+'"]').classList.add('active');
     }
     function nextTab(currentTabNumber) {
-      const nextTabId = 'tab' + (currentTabNumber + 1);
-      showTab(nextTabId);
+      showTab('tab' + (currentTabNumber + 1));
     }
     function prevTab(currentTabNumber) {
-      const prevTabId = 'tab' + (currentTabNumber - 1);
-      showTab(prevTabId);
+      showTab('tab' + (currentTabNumber - 1));
     }
     
     // --- Карусель выбора класса ---
@@ -453,11 +449,9 @@
           </div>
         </div>
       `;
-      const weaponRadios = document.getElementsByName("weaponSelection");
-      const abilityRadios = document.getElementsByName("abilitySelection");
-      weaponRadios.forEach(radio => { radio.addEventListener("change", checkSelections); });
-      abilityRadios.forEach(radio => { radio.addEventListener("change", checkSelections); });
       document.getElementById("tab2NextButton").disabled = true;
+      document.getElementsByName("weaponSelection").forEach(radio => { radio.addEventListener("change", checkSelections); });
+      document.getElementsByName("abilitySelection").forEach(radio => { radio.addEventListener("change", checkSelections); });
     }
     function checkSelections() {
       const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
@@ -469,15 +463,9 @@
         document.getElementById("tab2NextButton").disabled = false;
       }
     }
-    document.getElementById("prevClass").addEventListener("click", () => {
-      changeClass((currentClassIndex - 1 + classes.length) % classes.length);
-    });
-    document.getElementById("nextClass").addEventListener("click", () => {
-      changeClass((currentClassIndex + 1) % classes.length);
-    });
-    function goToNextTab() {
-      nextTab(2);
-    }
+    document.getElementById("prevClass").addEventListener("click", () => { changeClass((currentClassIndex - 1 + classes.length) % classes.length); });
+    document.getElementById("nextClass").addEventListener("click", () => { changeClass((currentClassIndex + 1) % classes.length); });
+    function goToNextTab() { nextTab(2); }
     
     // --- Обработка информации о братьях/сёстрах ---
     function handleSiblingsChange() {
@@ -486,21 +474,21 @@
       let html = '';
       if (status === 'allAlive') {
         html = `
-          <label style="text-align:center;">Информация о братьях/сёстрах (все живы)</label>
+          <label style="text-align:center;">Информация о братьях/сёстрах</label>
           <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
         `;
       } else if (status === 'allDead') {
         html = `
-          <label style="text-align:center;">Информация о братьях/сёстрах (все мертвы)</label>
+          <label style="text-align:center;">Информация о братьях/сёстрах</label>
           <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
-          <label style="text-align:center;">Как умерли братья/сёстры</label>
+          <label style="text-align:center;">Информация о смерти</label>
           <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, как умерли"></textarea>
         `;
       } else if (status === 'someDead') {
         html = `
           <label style="text-align:center;">Информация о братьях/сёстрах</label>
           <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
-          <label style="text-align:center;">Укажите, кто из них мертв и как</label>
+          <label style="text-align:center;">Кто умер и как</label>
           <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, кто умер и как"></textarea>
         `;
       }
@@ -515,23 +503,68 @@
       container.style.display = (status === 'yes') ? 'block' : 'none';
     }
     
-    // Функция для сохранения истории персонажа (можно доработать отправку на сервер)
-    function saveCharacterHistory() {
-      const historyData = {
-        parentsHistory: document.getElementById('parentsHistory').value.trim(),
-        siblingsStatus: document.getElementById('siblingsStatus').value,
-        siblingsInfo: document.getElementById('siblingsInfo') ? document.getElementById('siblingsInfo').value.trim() : '',
-        siblingsDeathInfo: document.getElementById('siblingsDeathInfo') ? document.getElementById('siblingsDeathInfo').value.trim() : '',
-        childhood: document.getElementById('childhood').value.trim(),
-        friendsStatus: document.getElementById('friendsStatus').value,
-        friendsInfo: document.getElementById('friendsInfo') ? document.getElementById('friendsInfo').value.trim() : '',
-        workHistory: document.getElementById('workHistory').value.trim(),
-        significantEvents: document.getElementById('significantEvents').value.trim(),
-        motives: document.getElementById('motives').value.trim(),
-        characterTraits: document.getElementById('characterTraits').value.trim()
-      };
-      console.log("История персонажа:", historyData);
-      alert("История персонажа сохранена!");
+    // Функция для генерации PDF (с использованием jsPDF)
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      let y = 10;
+      function addSection(title, text) {
+        pdf.setFontSize(14);
+        pdf.text(title, 10, y);
+        y += 7;
+        pdf.setFontSize(12);
+        pdf.text(text || "—", 10, y);
+        y += 10;
+      }
+      addSection("Имя персонажа", document.getElementById('firstName').value.trim());
+      addSection("Фамилия персонажа", document.getElementById('lastName').value.trim());
+      addSection("Возраст", document.getElementById('age').value.trim());
+      addSection("Телосложение", document.getElementById('bodyType').value);
+      let className = "";
+      let weaponChosen = "";
+      let abilityChosen = "";
+      if (userSelection.classIndex !== null) {
+        const cData = classes[userSelection.classIndex];
+        className = cData.name;
+        weaponChosen = cData.weapons[userSelection.weapon];
+        abilityChosen = cData.abilities[userSelection.ability];
+      }
+      addSection("Класс персонажа", className);
+      addSection("Выбранное оружие", weaponChosen);
+      addSection("Уникальная способность", abilityChosen);
+      addSection("История родителей", document.getElementById('parentsHistory').value.trim());
+      addSection("Братья/сёстры (статус)", document.getElementById('siblingsStatus').value);
+      if (document.getElementById('siblingsStatus').value !== "none") {
+        addSection("Информация о братьях/сёстрах", document.getElementById('siblingsInfo') ? document.getElementById('siblingsInfo').value.trim() : "");
+        if (document.getElementById('siblingsStatus').value === "allDead" || document.getElementById('siblingsStatus').value === "someDead") {
+          addSection("Информация о смерти", document.getElementById('siblingsDeathInfo') ? document.getElementById('siblingsDeathInfo').value.trim() : "");
+        }
+      }
+      addSection("Детство персонажа", document.getElementById('childhood').value.trim());
+      addSection("Друзья детства (статус)", document.getElementById('friendsStatus').value);
+      if (document.getElementById('friendsStatus').value === "yes") {
+        addSection("Информация о друзьях детства", document.getElementById('friendsInfo') ? document.getElementById('friendsInfo').value.trim() : "");
+      }
+      addSection("История работы", document.getElementById('workHistory').value.trim());
+      addSection("Значимые события", document.getElementById('significantEvents').value.trim());
+      addSection("Мотивы и цели", document.getElementById('motives').value.trim());
+      addSection("Особенности характера", document.getElementById('characterTraits').value.trim());
+      
+      // Обработка изображения: если прикреплено, добавляем ссылку на скачивание (data URL)
+      const fileInput = document.getElementById('characterImage');
+      if (fileInput.files && fileInput.files[0]) {
+        const base64Image = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+        pdf.setFontSize(14);
+        pdf.textWithLink("Скачать изображение персонажа", 10, y, { url: base64Image });
+        y += 10;
+      }
+      
+      pdf.save("character.pdf");
     }
   </script>
   
@@ -546,7 +579,7 @@
       e.preventDefault();
       dropArea.style.borderColor = "#fff";
       const files = e.dataTransfer.files;
-      if(files.length) {
+      if (files.length) {
         const dt = new DataTransfer();
         dt.items.add(files[0]);
         fileInput.files = dt.files;
@@ -558,7 +591,7 @@
       }
     });
     fileInput.addEventListener('change', () => {
-      if(fileInput.files.length) {
+      if (fileInput.files.length) {
         const reader = new FileReader();
         reader.onload = (event) => {
           dropArea.innerHTML = `<img src="${event.target.result}" alt="Предпросмотр выбранного файла" style="max-width:100%; cursor: pointer; border: 2px dashed #fff; border-radius: 5px;"> <p class="hint">Нажмите на картинку или перетащите файл сюда</p>`;
