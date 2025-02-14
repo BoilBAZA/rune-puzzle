@@ -7,417 +7,358 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       background: #222;
       color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
     }
-    /* Общие стили для экранов */
-    .screen { display: none; padding: 20px; }
-    .active { display: block; }
-    h1, h2, h3 { text-align: center; }
-    button { padding: 10px 15px; margin: 5px; cursor: pointer; }
-    /* Стили для выбора персонажа */
-    #character-selection { text-align: center; }
-    .character-btn {
-      background: #444;
-      border: none;
-      color: #fff;
-      font-size: 16px;
-      margin: 10px;
-      padding: 15px 20px;
-      border-radius: 5px;
-    }
-    .character-btn:hover {
-      background: #555;
-    }
-    /* Игровой экран */
-    #game-container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    #stats {
+    h1, h2 {
       text-align: center;
+    }
+    /* Контейнер для лабиринта */
+    #maze-container {
+      display: grid;
+      grid-template-columns: repeat(15, 30px);
+      grid-auto-rows: 30px;
+      gap: 0;
+      border: 2px solid #eee;
       margin-bottom: 10px;
     }
-    #game-board {
-      display: grid;
-      grid-template-columns: repeat(7, 50px);
-      grid-gap: 2px;
-      margin: 10px auto;
-      background: #333;
-      padding: 5px;
-    }
     .cell {
-      width: 50px;
-      height: 50px;
-      background: #666;
+      width: 30px;
+      height: 30px;
+      box-sizing: border-box;
+      position: relative;
+    }
+    /* Рисуем стены ячейки */
+    .wall-top   { border-top: 2px solid #eee; }
+    .wall-right { border-right: 2px solid #eee; }
+    .wall-bottom{ border-bottom: 2px solid #eee; }
+    .wall-left  { border-left: 2px solid #eee; }
+    /* Игрок */
+    .player {
+      background: #ff6600;
+    }
+    /* Пометка ячейки с загадкой (если не решена) */
+    .puzzle {
+      background: #444;
+    }
+    .puzzle::after {
+      content: "?";
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 16px;
+      color: #ff6600;
+    }
+    /* Финальная ячейка – дверь главного зала */
+    .final {
+      background: #0055aa;
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      border: 1px solid #555;
-      position: relative;
+      font-size: 10px;
     }
-    .cell.player {
-      background: #ff6600;
-      color: #000;
-      font-weight: bold;
+    /* Информация игрока */
+    #info {
+      margin-bottom: 10px;
     }
-    /* Управление стрелками */
-    #controls {
-      text-align: center;
-      margin-top: 10px;
+    /* Кнопки управления */
+    #controls button {
+      padding: 5px 10px;
+      margin: 2px;
+      font-size: 16px;
+      cursor: pointer;
     }
-    #controls button { font-size: 16px; }
-    /* Модальное окно для событий */
+    /* Модальное окно */
     #modal {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       z-index: 1000;
+      align-items: center;
+      justify-content: center;
     }
     #modal-content {
       background: #333;
       padding: 20px;
-      max-width: 500px;
-      margin: 100px auto;
-      border-radius: 5px;
+      max-width: 400px;
       text-align: center;
+      border-radius: 5px;
+    }
+    #modal input[type="text"] {
+      padding: 5px;
+      margin: 10px;
+      width: 80%;
+    }
+    #restartBtn {
+      margin-top: 10px;
+      padding: 5px 10px;
     }
   </style>
 </head>
 <body>
-  <!-- Экран выбора персонажа -->
-  <div id="character-selection" class="screen active">
-    <h1>Выберите персонажа</h1>
-    <p>Каждый персонаж имеет свой радиус перемещения за ход:</p>
-    <button class="character-btn" onclick="chooseCharacter('Вахаиб', 6)">Вахаиб (6 клеток)</button>
-    <button class="character-btn" onclick="chooseCharacter('Гнилион', 8)">Гнилион (8 клеток)</button>
-    <button class="character-btn" onclick="chooseCharacter('Офилнекр', 5)">Офилнекр (5 клеток)</button>
-    <button class="character-btn" onclick="chooseCharacter('Залупатор', 5)">Залупатор (5 клеток)</button>
+  <h1>Лабиринт Башни Дюны</h1>
+  <div id="info">
+    <span>Ключей: <span id="keysCount">0</span>/3</span>
+  </div>
+  <div id="maze-container"></div>
+  <div id="controls">
+    <button onclick="movePlayer('up')">↑</button><br>
+    <button onclick="movePlayer('left')">←</button>
+    <button onclick="movePlayer('right')">→</button><br>
+    <button onclick="movePlayer('down')">↓</button>
   </div>
 
-  <!-- Игровой экран -->
-  <div id="game-container" class="screen">
-    <h2>Лабиринт Башни Дюны</h2>
-    <div id="stats">
-      Здоровье: <span id="health">10</span> | Очков перемещения: <span id="movesLeft"></span>
-    </div>
-    <div id="game-board"></div>
-    <div id="controls">
-      <button onclick="movePlayer('up')">↑ Вверх</button><br>
-      <button onclick="movePlayer('left')">← Влево</button>
-      <button onclick="movePlayer('right')">Вправо →</button><br>
-      <button onclick="movePlayer('down')">↓ Вниз</button>
-    </div>
-  </div>
-
-  <!-- Модальное окно для мини-игр -->
+  <!-- Модальное окно для загадок и финала -->
   <div id="modal">
     <div id="modal-content"></div>
   </div>
 
   <script>
-    // Глобальные переменные игры
-    const gridSize = 7;
-    let player = { name: '', moveRange: 0, movesLeft: 0, x: 0, y: 0, health: 10, mutantAlly: false };
-    // Определяем события на клетках (координаты в формате "x,y")
-    let events = {
-      "1,1": { type: "codeLock" },
-      "0,3": { type: "fallingDebris" },
-      "3,1": { type: "shadowMaze" },
-      "4,2": { type: "sandTrap" },
-      "5,4": { type: "mutantCapsule" },
-      "2,2": { type: "secretPassage" },
-      "3,3": { type: "finalDoor" }
-    };
+    // Размеры лабиринта
+    const mazeWidth = 15;
+    const mazeHeight = 15;
+    const cellSize = 30; // для отрисовки
+    let maze = [];
+    let player = { x: 0, y: 0, keys: 0 };
+    // Для финального выбора – случайно назначаем безопасную дверь (0 или 1)
+    let safeDoor = Math.random() < 0.5 ? 0 : 1;
 
-    // Элементы интерфейса
-    const charScreen = document.getElementById('character-selection');
-    const gameScreen = document.getElementById('game-container');
-    const boardEl = document.getElementById('game-board');
-    const healthEl = document.getElementById('health');
-    const movesEl = document.getElementById('movesLeft');
-    const modal = document.getElementById('modal');
-    const modalContent = document.getElementById('modal-content');
+    const mazeContainer = document.getElementById("maze-container");
+    const keysCountEl = document.getElementById("keysCount");
+    const modal = document.getElementById("modal");
+    const modalContent = document.getElementById("modal-content");
 
-    // Создаем игровое поле
-    let cells = [];
-    function initBoard() {
-      boardEl.innerHTML = '';
-      cells = [];
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          const cell = document.createElement('div');
-          cell.classList.add('cell');
-          cell.dataset.x = x;
-          cell.dataset.y = y;
-          // Можно для отладки выводить координаты
-          // cell.innerText = `${x},${y}`;
-          boardEl.appendChild(cell);
-          cells.push(cell);
+    // Генерация лабиринта с помощью алгоритма "backtracking"
+    function generateMaze() {
+      // Инициализируем ячейки
+      for (let y = 0; y < mazeHeight; y++) {
+        maze[y] = [];
+        for (let x = 0; x < mazeWidth; x++) {
+          maze[y][x] = {
+            x, y,
+            walls: { top: true, right: true, bottom: true, left: true },
+            visited: false,
+            puzzle: false,  // загадочная комната
+            solved: false   // была ли загадка решена
+          };
         }
       }
-      updatePlayerPosition();
+      // Рекурсивный алгоритм обхода
+      let stack = [];
+      let current = maze[0][0];
+      current.visited = true;
+
+      while (true) {
+        let neighbors = getUnvisitedNeighbors(current);
+        if (neighbors.length > 0) {
+          let next = neighbors[Math.floor(Math.random() * neighbors.length)];
+          removeWalls(current, next);
+          stack.push(current);
+          next.visited = true;
+          current = next;
+        } else if (stack.length > 0) {
+          current = stack.pop();
+        } else {
+          break;
+        }
+      }
+      // Размечаем случайным образом комнаты с загадками (но не старт и не финальную)
+      for (let y = 0; y < mazeHeight; y++) {
+        for (let x = 0; x < mazeWidth; x++) {
+          if ((x !== 0 || y !== 0) && (x !== mazeWidth-1 || y !== mazeHeight-1)) {
+            if (Math.random() < 0.2) {  // 20% шанс
+              maze[y][x].puzzle = true;
+            }
+          }
+        }
+      }
     }
 
-    // Обновление клетки с игроком
-    function updatePlayerPosition() {
-      cells.forEach(cell => cell.classList.remove('player'));
-      const index = player.y * gridSize + player.x;
-      cells[index].classList.add('player');
-      movesEl.innerText = player.movesLeft;
-      healthEl.innerText = player.health;
+    // Функция поиска непосещённых соседей
+    function getUnvisitedNeighbors(cell) {
+      let neighbors = [];
+      let { x, y } = cell;
+      // Верх
+      if (y > 0 && !maze[y - 1][x].visited) neighbors.push(maze[y - 1][x]);
+      // Право
+      if (x < mazeWidth - 1 && !maze[y][x + 1].visited) neighbors.push(maze[y][x + 1]);
+      // Низ
+      if (y < mazeHeight - 1 && !maze[y + 1][x].visited) neighbors.push(maze[y + 1][x]);
+      // Лево
+      if (x > 0 && !maze[y][x - 1].visited) neighbors.push(maze[y][x - 1]);
+      return neighbors;
     }
 
-    // Функция выбора персонажа
-    function chooseCharacter(name, moveRange) {
-      player.name = name;
-      player.moveRange = moveRange;
-      player.movesLeft = moveRange;
-      // Начальная позиция (например, верхний левый угол)
-      player.x = 0;
-      player.y = 0;
-      charScreen.classList.remove('active');
-      gameScreen.classList.add('active');
-      initBoard();
+    // Удаление стен между текущей и выбранной ячейкой
+    function removeWalls(current, next) {
+      let xDiff = current.x - next.x;
+      let yDiff = current.y - next.y;
+      if (xDiff === 1) {
+        current.walls.left = false;
+        next.walls.right = false;
+      } else if (xDiff === -1) {
+        current.walls.right = false;
+        next.walls.left = false;
+      }
+      if (yDiff === 1) {
+        current.walls.top = false;
+        next.walls.bottom = false;
+      } else if (yDiff === -1) {
+        current.walls.bottom = false;
+        next.walls.top = false;
+      }
     }
 
-    // Функция перемещения игрока
+    // Отрисовка лабиринта
+    function renderMaze() {
+      mazeContainer.innerHTML = "";
+      for (let y = 0; y < mazeHeight; y++) {
+        for (let x = 0; x < mazeWidth; x++) {
+          const cell = maze[y][x];
+          const cellDiv = document.createElement("div");
+          cellDiv.classList.add("cell");
+          // Добавляем классы для стен
+          if (cell.walls.top) cellDiv.classList.add("wall-top");
+          if (cell.walls.right) cellDiv.classList.add("wall-right");
+          if (cell.walls.bottom) cellDiv.classList.add("wall-bottom");
+          if (cell.walls.left) cellDiv.classList.add("wall-left");
+
+          // Если в ячейке есть загадка и не решена, подсвечиваем её
+          if (cell.puzzle && !cell.solved) {
+            cellDiv.classList.add("puzzle");
+          }
+          // Финальная ячейка (главный зал)
+          if (x === mazeWidth - 1 && y === mazeHeight - 1) {
+            cellDiv.classList.add("final");
+            cellDiv.innerText = "Дверь";
+          }
+          // Пометка игрока
+          if (player.x === x && player.y === y) {
+            cellDiv.classList.add("player");
+          }
+          cellDiv.id = `cell-${x}-${y}`;
+          mazeContainer.appendChild(cellDiv);
+        }
+      }
+    }
+
+    // Обновление отрисовки игрока и лабиринта
+    function updateMaze() {
+      renderMaze();
+      keysCountEl.innerText = player.keys;
+      checkCurrentCell();
+    }
+
+    // Логика движения игрока – учитываем стены текущей ячейки
     function movePlayer(direction) {
-      if (player.movesLeft <= 0) {
-        // Если очки перемещения закончились, начинаем новый ход
-        player.movesLeft = player.moveRange;
+      let cx = player.x, cy = player.y;
+      let cell = maze[cy][cx];
+      if (direction === "up" && !cell.walls.top) {
+        player.y--;
+      } else if (direction === "down" && !cell.walls.bottom) {
+        player.y++;
+      } else if (direction === "left" && !cell.walls.left) {
+        player.x--;
+      } else if (direction === "right" && !cell.walls.right) {
+        player.x++;
       }
-      let newX = player.x, newY = player.y;
-      if (direction === 'up') newY--;
-      if (direction === 'down') newY++;
-      if (direction === 'left') newX--;
-      if (direction === 'right') newX++;
-      // Проверяем границы
-      if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize) return;
-      player.x = newX;
-      player.y = newY;
-      player.movesLeft--;
-      updatePlayerPosition();
-      checkForEvent();
+      updateMaze();
     }
 
-    // Проверяем, есть ли событие на новой клетке
-    function checkForEvent() {
-      const key = player.x + ',' + player.y;
-      if (events[key]) {
-        const eventData = events[key];
-        // Убираем событие, чтобы оно не повторялось
-        delete events[key];
-        triggerEvent(eventData.type);
+    // Проверка, что находится в текущей ячейке
+    function checkCurrentCell() {
+      let cell = maze[player.y][player.x];
+      // Если ячейка содержит загадку и она не решена, запускаем её
+      if (cell.puzzle && !cell.solved) {
+        triggerPuzzle(cell);
+      }
+      // Если игрок попал в финальную ячейку
+      if (player.x === mazeWidth - 1 && player.y === mazeHeight - 1) {
+        if (player.keys >= 3) {
+          triggerFinalDoor();
+        } else {
+          showModal(`<p>Дверь заблокирована. Соберите 3 ключа, чтобы открыть главный зал.</p>
+          <button onclick="closeModal()">Закрыть</button>`);
+        }
       }
     }
 
-    // Функция показа модального окна
+    // Модальное окно – загадка
+    function triggerPuzzle(cell) {
+      // Загадка: назовите предмет, который открывает двери.
+      let html = `<h2>Загадка</h2>
+        <p>Назовите предмет, который открывает двери.</p>
+        <input type="text" id="puzzleAnswer" placeholder="Ваш ответ">
+        <br>
+        <button onclick="checkPuzzle(${cell.x},${cell.y})">Ответить</button>
+        <button onclick="closeModal()">Отмена</button>`;
+      showModal(html);
+    }
+
+    // Проверка ответа загадки
+    function checkPuzzle(x, y) {
+      const answer = document.getElementById("puzzleAnswer").value.trim().toLowerCase();
+      if (answer === "ключ") {
+        maze[y][x].solved = true;
+        player.keys++;
+        showModal(`<p>Правильно! Вы получили Ключ.</p>
+        <button onclick="closeModal()">Продолжить</button>`);
+      } else {
+        showModal(`<p>Неправильный ответ. Попробуйте позже.</p>
+        <button onclick="closeModal()">Закрыть</button>`);
+      }
+      updateMaze();
+    }
+
+    // Модальное окно для финальной двери
+    function triggerFinalDoor() {
+      let html = `<h2>Главный зал</h2>
+        <p>Перед вами две двери. Одна из них безопасна, другая – смертельна.</p>
+        <p>Выберите дверь:</p>
+        <button onclick="chooseFinalDoor(0)">Дверь 1</button>
+        <button onclick="chooseFinalDoor(1)">Дверь 2</button>`;
+      showModal(html);
+    }
+
+    function chooseFinalDoor(choice) {
+      if (choice === safeDoor) {
+        showModal(`<h2>Победа!</h2>
+          <p>Вы выбрали правильную дверь и вышли на свободу!</p>
+          <button onclick="restartGame()">Начать заново</button>`);
+      } else {
+        showModal(`<h2>Поражение</h2>
+          <p>Неверный выбор! Эта дверь оказалась смертельной.</p>
+          <button onclick="restartGame()">Начать заново</button>`);
+      }
+    }
+
+    // Функции работы с модальным окном
     function showModal(content) {
       modalContent.innerHTML = content;
-      modal.style.display = 'block';
+      modal.style.display = "flex";
     }
-    function hideModal() {
-      modal.style.display = 'none';
+    function closeModal() {
+      modal.style.display = "none";
     }
-
-    // Обработка событий по типу
-    function triggerEvent(type) {
-      switch(type) {
-        case "codeLock":
-          handleCodeLock();
-          break;
-        case "fallingDebris":
-          handleFallingDebris();
-          break;
-        case "shadowMaze":
-          handleShadowMaze();
-          break;
-        case "sandTrap":
-          handleSandTrap();
-          break;
-        case "mutantCapsule":
-          handleMutantCapsule();
-          break;
-        case "secretPassage":
-          handleSecretPassage();
-          break;
-        case "finalDoor":
-          handleFinalDoor();
-          break;
-        default:
-          break;
-      }
+    function restartGame() {
+      location.reload();
     }
 
-    /* 1. Кодовый замок (Запертые ворота) */
-    let codeLockInput = [];
-    function handleCodeLock() {
-      codeLockInput = [];
-      let html = `<h3>Запертые ворота - Кодовый замок</h3>
-        <p>В пустыне выживает тот, кто следует пути стихий.<br>Введите последовательность: Песок, Ветер, Вода, Солнце.</p>
-        <div id="codeLockDisplay">Введено: </div>`;
-      // Кнопки для ввода
-      ["Песок", "Ветер", "Вода", "Солнце"].forEach(item => {
-        html += `<button onclick="codeLockChoose('${item}')">${item}</button> `;
-      });
-      showModal(html);
+    // Инициализация игры
+    function init() {
+      generateMaze();
+      renderMaze();
     }
-    function codeLockChoose(choice) {
-      codeLockInput.push(choice);
-      document.getElementById("codeLockDisplay").innerText = "Введено: " + codeLockInput.join(", ");
-      if (codeLockInput.length === 4) {
-        // Проверяем последовательность
-        const correct = ["Песок", "Ветер", "Вода", "Солнце"];
-        if (JSON.stringify(codeLockInput) === JSON.stringify(correct)) {
-          showModal("<p>Верно! Дверь открывается.</p><button onclick='closeEvent()'>Продолжить</button>");
-        } else {
-          player.health -= 2;
-          showModal("<p>Неправильно! Включена тревога, атакуют стражники.</p><button onclick='closeEvent()'>Продолжить</button>");
-        }
-      }
-    }
-
-    /* 2. Обвалившийся коридор (Проверка ловкости) */
-    let debrisTimeout;
-    function handleFallingDebris() {
-      let html = `<h3>Обвалившийся коридор - Проверка ловкости</h3>
-        <p>Нажмите кнопку "Перепрыгнуть" до истечения 3 секунд!</p>
-        <button id="jumpBtn" onclick="jumpSuccess()">Перепрыгнуть</button>`;
-      showModal(html);
-      debrisTimeout = setTimeout(() => {
-        player.health -= 2;
-        showModal("<p>Не успели! Вы получили урон от завала.</p><button onclick='closeEvent()'>Продолжить</button>");
-      }, 3000);
-    }
-    function jumpSuccess() {
-      clearTimeout(debrisTimeout);
-      showModal("<p>Успех! Вы перепрыгнули через обвал.</p><button onclick='closeEvent()'>Продолжить</button>");
-    }
-
-    /* 3. Оптический коридор (Лабиринт теней) */
-    function handleShadowMaze() {
-      let html = `<h3>Оптический коридор - Лабиринт теней</h3>
-        <p>Иди туда, где нет света, но есть путь.<br>Выберите дверь:</p>
-        <button onclick="shadowMazeChoose(1)">Дверь 1</button>
-        <button onclick="shadowMazeChoose(2)">Дверь 2</button>
-        <button onclick="shadowMazeChoose(3)">Дверь 3</button>`;
-      showModal(html);
-    }
-    function shadowMazeChoose(num) {
-      if (num === 2) {
-        showModal("<p>Правильно! Ты нашёл верный путь.</p><button onclick='closeEvent()'>Продолжить</button>");
-      } else {
-        player.health -= 2;
-        showModal("<p>Неверно! Ты получил урон.</p><button onclick='closeEvent()'>Продолжить</button>");
-      }
-    }
-
-    /* 4. Песчаная ловушка (Выживание) */
-    function handleSandTrap() {
-      let html = `<h3>Песчаная ловушка - Выживание</h3>
-        <p>Ты начинаешь тонуть в песке. Выбери действие:</p>
-        <button onclick="sandTrapChoose('Двигаться быстро')">Двигаться быстро</button>
-        <button onclick="sandTrapChoose('Расслабиться и замереть')">Расслабиться и замереть</button>
-        <button onclick="sandTrapChoose('Применить предмет (крюк/верёвка)')">Применить предмет (крюк/верёвка)</button>`;
-      showModal(html);
-    }
-    function sandTrapChoose(choice) {
-      if (choice === 'Применить предмет (крюк/верёвка)') {
-        showModal("<p>Верно! Ты выбрал правильное действие.</p><button onclick='closeEvent()'>Продолжить</button>");
-      } else {
-        player.health -= 1;
-        showModal("<p>Неверный выбор! Ты получил урон и теряешь ход.</p><button onclick='closeEvent()'>Продолжить</button>");
-      }
-    }
-
-    /* 5. Капсула с мутантом (Выбор судьбы) */
-    function handleMutantCapsule() {
-      let html = `<h3>Капсула с мутантом - Выбор судьбы</h3>
-        <p>Объект: Дельта-7.<br>Что ты сделаешь?</p>
-        <button onclick="mutantCapsuleChoose('open')">Открыть капсулу</button>
-        <button onclick="mutantCapsuleChoose('block')">Заблокировать</button>`;
-      showModal(html);
-    }
-    function mutantCapsuleChoose(choice) {
-      if (choice === 'open') {
-        player.health -= 1;
-        player.mutantAlly = true;
-        showModal("<p>Ты открыл капсулу. Существо атакует, но впоследствии помогает тебе.</p><button onclick='closeEvent()'>Продолжить</button>");
-      } else {
-        showModal("<p>Ты заблокировал капсулу. Путь продолжается без изменений.</p><button onclick='closeEvent()'>Продолжить</button>");
-      }
-    }
-
-    /* 6. Тайный проход (Комбинация кнопок) */
-    let secretInput = [];
-    function handleSecretPassage() {
-      secretInput = [];
-      let html = `<h3>Тайный проход - Комбинация кнопок</h3>
-        <p>Найди правильную последовательность.<br>Кнопки: A, B, C<br>(Подсказка: правильная последовательность: B, A, C)</p>
-        <div id="secretDisplay">Введено: </div>`;
-      ["A", "B", "C"].forEach(letter => {
-        html += `<button onclick="secretChoose('${letter}')">${letter}</button> `;
-      });
-      showModal(html);
-    }
-    function secretChoose(letter) {
-      secretInput.push(letter);
-      document.getElementById("secretDisplay").innerText = "Введено: " + secretInput.join(", ");
-      if (secretInput.length === 3) {
-        const correct = ["B", "A", "C"];
-        if (JSON.stringify(secretInput) === JSON.stringify(correct)) {
-          showModal("<p>Верно! Тайный проход открыт.</p><button onclick='closeEvent()'>Продолжить</button>");
-        } else {
-          player.health -= 1;
-          showModal("<p>Неверно! Ты получил урон.</p><button onclick='closeEvent()'>Продолжить</button>");
-        }
-      }
-    }
-
-    /* 7. Финальная дверь (Вход в зал Садора Крайвиса) */
-    function handleFinalDoor() {
-      let html = `<h3>Финальная дверь</h3>
-        <p>Тот, кто правит пустыней, не оставляет следов. Тот, кто жаждет крови, оставляет лишь пыль.<br>Выбери:</p>
-        <button onclick="finalDoorChoose('Ветер')">Ветер</button>
-        <button onclick="finalDoorChoose('Кровь')">Кровь</button>`;
-      showModal(html);
-    }
-    function finalDoorChoose(choice) {
-      if (choice === 'Ветер') {
-        showModal("<p>Поздравляем! Дверь открыта, и ты побеждаешь в финальной битве!</p><button onclick='endGame(true)'>Завершить игру</button>");
-      } else {
-        showModal("<p>Ловушка! Атака лазеров. Игра окончена.</p><button onclick='endGame(false)'>Завершить игру</button>");
-      }
-    }
-
-    // Завершение события: скрываем модальное окно и обновляем состояние игры.
-    function closeEvent() {
-      hideModal();
-      updatePlayerPosition();
-      checkGameOver();
-    }
-    
-    // Проверка на окончание игры (если здоровье упало до 0 или ниже)
-    function checkGameOver() {
-      if (player.health <= 0) {
-        showModal("<p>Твое здоровье закончилось. Игра окончена.</p><button onclick='location.reload()'>Начать заново</button>");
-      }
-    }
-    
-    // Завершение игры (победа/поражение)
-    function endGame(victory) {
-      if (victory) {
-        showModal("<h3>Победа!</h3><p>Ты прошёл лабиринт Башни Дюны.</p><button onclick='location.reload()'>Начать заново</button>");
-      } else {
-        showModal("<h3>Поражение</h3><p>Ты не справился с финальным испытанием.</p><button onclick='location.reload()'>Начать заново</button>");
-      }
-    }
+    init();
   </script>
 </body>
 </html>
