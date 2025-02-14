@@ -43,14 +43,26 @@
       height: 50px;
     }
     /* Экран игры */
+    .game-panel {
+      width: 100%;
+      max-width: 1000px;
+    }
     #game-info {
       margin: 10px;
       font-size: 16px;
+      text-align: center;
     }
-    #maze-container {
+    /* Контейнеры для отображения лабиринта */
+    #player-view, #gm-view {
+      margin: 10px 0;
+    }
+    #player-view h3, #gm-view h3 {
+      margin: 5px;
+      text-align: center;
+    }
+    .maze-container {
       display: grid;
       border: 2px solid #eee;
-      margin-bottom: 10px;
       position: relative;
     }
     .cell {
@@ -93,7 +105,7 @@
       transform: translate(-50%, -50%);
       z-index: 2;
     }
-    /* Финальная ячейка – дверь главного зала */
+    /* Финальная ячейка – дверь */
     .final {
       background: #0055aa;
       color: #fff;
@@ -102,7 +114,11 @@
       justify-content: center;
       font-size: 10px;
     }
-    /* Кнопки управления */
+    /* Контейнер управления */
+    #controls {
+      text-align: center;
+      margin: 10px;
+    }
     #controls button {
       padding: 5px 10px;
       margin: 2px;
@@ -133,12 +149,30 @@
       margin: 10px;
       width: 80%;
     }
+    /* Эффект тряски для мини-игры взлома двери */
+    @keyframes shake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      10% { transform: translate(-1px, -2px) rotate(-1deg); }
+      20% { transform: translate(-3px, 0px) rotate(1deg); }
+      30% { transform: translate(3px, 2px) rotate(0deg); }
+      40% { transform: translate(1px, -1px) rotate(1deg); }
+      50% { transform: translate(-1px, 2px) rotate(-1deg); }
+      60% { transform: translate(-3px, 1px) rotate(0deg); }
+      70% { transform: translate(3px, 1px) rotate(-1deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      90% { transform: translate(1px, 2px) rotate(0deg); }
+      100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+    .shake {
+      animation: shake 0.5s;
+      animation-iteration-count: 4;
+    }
   </style>
 </head>
 <body>
   <!-- Экран выбора персонажей -->
   <div id="character-selection" class="screen active">
-    <h1>Выбор персонажа</h1>
+    <h1>Выбор персонажей</h1>
     <div id="selection-info">Выбор персонажа для игрока 1</div>
     <div id="character-options">
       <button onclick="selectCharacter('Вахаиб', 6, 'https://i.imgur.com/nWpZOkZ.png')">
@@ -157,20 +191,36 @@
         <img src="https://i.imgur.com/oJCnoYW.png" alt="Офилнекр">
         Офилнекр (5 клеток)
       </button>
+      <!-- Слот для ГМ -->
+      <button onclick="selectGM()">
+        <img src="https://via.placeholder.com/50?text=GM" alt="ГМ">
+        Гейм Мастер
+      </button>
     </div>
   </div>
 
   <!-- Экран игры -->
   <div id="game-screen" class="screen" style="display: none;">
-    <div id="game-info">
-      <span id="turnInfo"></span> | Ключей: <span id="keysCount">0</span>/3
-    </div>
-    <div id="maze-container"></div>
-    <div id="controls">
-      <button onclick="movePlayer('up')">↑</button><br>
-      <button onclick="movePlayer('left')">←</button>
-      <button onclick="movePlayer('right')">→</button><br>
-      <button onclick="movePlayer('down')">↓</button>
+    <div class="game-panel">
+      <div id="game-info">
+        <span id="turnInfo"></span> | Ключей: <span id="keysCount">0</span>/3
+      </div>
+      <!-- Игрокский вид -->
+      <div id="player-view">
+        <h3>Игрокский вид</h3>
+        <div id="maze-container" class="maze-container"></div>
+      </div>
+      <!-- Вид ГМ (если выбран) -->
+      <div id="gm-view" style="display: none;">
+        <h3>Вид ГМ</h3>
+        <div id="gm-maze-container" class="maze-container"></div>
+      </div>
+      <div id="controls">
+        <button onclick="movePlayer('up')">↑</button><br>
+        <button onclick="movePlayer('left')">←</button>
+        <button onclick="movePlayer('right')">→</button><br>
+        <button onclick="movePlayer('down')">↓</button>
+      </div>
     </div>
   </div>
 
@@ -180,53 +230,43 @@
   </div>
 
   <script>
-    /* ==== Выбор персонажей и запуск игры ==== */
-    const totalPlayers = 4;
-    let players = [];
-    let currentSelectionIndex = 0;
-    let currentPlayerIndex = 0;
+    /* ==== Выбор персонажей ==== */
+    const totalPlayerSlots = 4; // игроков
+    let players = []; // активные игроки
+    let gmPlayer = null; // ГМ
+    let selectionStage = 0; // 0-3 для игроков, 4 для ГМ
     const selectionInfoDiv = document.getElementById("selection-info");
     const characterSelectionDiv = document.getElementById("character-selection");
     const gameScreenDiv = document.getElementById("game-screen");
-    const turnInfoSpan = document.getElementById("turnInfo");
-    const keysCountEl = document.getElementById("keysCount");
 
     selectionInfoDiv.innerText = "Выбор персонажа для игрока 1";
 
     function selectCharacter(name, moveRange, icon) {
-      // Создаем объект игрока; начальные координаты назначим позже
-      players.push({ name: name, moveRange: moveRange, movesLeft: moveRange, keys: 0, icon: icon, x: 0, y: 0 });
-      currentSelectionIndex++;
-      if (currentSelectionIndex < totalPlayers) {
-        selectionInfoDiv.innerText = "Выбор персонажа для игрока " + (currentSelectionIndex + 1);
-      } else {
-        startGame();
+      if (selectionStage < totalPlayerSlots) {
+        players.push({ name: name, moveRange: moveRange, movesLeft: moveRange, keys: 0, icon: icon, x: 0, y: 0 });
+        selectionStage++;
+        if (selectionStage < totalPlayerSlots) {
+          selectionInfoDiv.innerText = "Выбор персонажа для игрока " + (selectionStage + 1);
+        } else {
+          selectionInfoDiv.innerText = "Выберите Гейм Мастера";
+        }
       }
     }
 
-    function startGame() {
-      // Скрываем экран выбора и показываем игровой
-      characterSelectionDiv.style.display = "none";
-      gameScreenDiv.style.display = "block";
-
-      // Размеры лабиринта (будет 45x45)
-      // Назначаем начальные позиции – по углам лабиринта
-      players[0].x = 0; players[0].y = 0;
-      players[1].x = 0; players[1].y = mazeHeight - 1;
-      players[2].x = mazeWidth - 1; players[2].y = 0;
-      players[3].x = mazeWidth - 1; players[3].y = mazeHeight - 1;
-
-      updateTurnInfo();
-      initMaze();
+    function selectGM() {
+      if (!gmPlayer) {
+        gmPlayer = { name: "ГМ", icon: "https://via.placeholder.com/50?text=GM" };
+        // После выбора ГМ начинаем игру
+        startGame();
+      }
     }
 
     /* ==== Параметры лабиринта ==== */
     const mazeWidth = 45;
     const mazeHeight = 45;
     const cellSize = 20; // в пикселях
-    const visibilityRange = 3; // видны клетки в радиусе 3
-
-    // Загадки по вселенной Дюны
+    const visibilityRange = 3; // радиус видимости для игроков
+    // Загадки по вселенной Дюны (для комнат с загадками)
     const puzzlesList = [
       { question: "Какой ресурс считается важнейшей валютой Арракиса?", answer: "спайс" },
       { question: "Назовите гигантского песчаного червя, бродящего по пустыне.", answer: "червь" },
@@ -235,16 +275,16 @@
       { question: "Назовите ресурс, за который борются все фракции Империи.", answer: "спайс" }
     ];
 
-    let maze = [];
+    let maze = []; // будет хранить сгенерированный лабиринт
 
     /* ==== Генерация лабиринта ==== */
     function initMaze() {
       generateMaze();
-      renderMaze();
+      renderAllViews();
     }
 
     function generateMaze() {
-      // Инициализируем ячейки
+      // Инициализация клеток
       for (let y = 0; y < mazeHeight; y++) {
         maze[y] = [];
         for (let x = 0; x < mazeWidth; x++) {
@@ -259,7 +299,7 @@
           };
         }
       }
-      // Алгоритм обхода с возвратом (backtracking)
+      // Алгоритм обхода (backtracking)
       let stack = [];
       let current = maze[0][0];
       current.visited = true;
@@ -277,14 +317,11 @@
           break;
         }
       }
-      // Размечаем комнаты с загадками (20% шанс, исключая угловые и финальную ячейку)
+      // Размечаем комнаты с загадками (20% шанс, исключая старт и финал)
       for (let y = 0; y < mazeHeight; y++) {
         for (let x = 0; x < mazeWidth; x++) {
           if (((x !== 0 || y !== 0) &&
-               (x !== 0 || y !== mazeHeight - 1) &&
-               (x !== mazeWidth - 1 || y !== 0) &&
-               (x !== mazeWidth - 1 || y !== mazeHeight - 1)) &&
-              !(x === mazeWidth - 1 && y === mazeHeight - 1)) {
+               (x !== mazeWidth-1 || y !== mazeHeight-1))) {
             if (Math.random() < 0.2) {
               maze[y][x].puzzle = true;
               maze[y][x].puzzleData = puzzlesList[Math.floor(Math.random() * puzzlesList.length)];
@@ -292,10 +329,10 @@
           }
         }
       }
-      // Размещаем точки боя с вероятностью 10% (если в клетке нет загадки)
+      // Размещаем точки боя с вероятностью 10% (если нет загадки)
       for (let y = 0; y < mazeHeight; y++) {
         for (let x = 0; x < mazeWidth; x++) {
-          if (!maze[y][x].puzzle && ((x !== 0 || y !== 0) && (x !== mazeWidth - 1 || y !== mazeHeight - 1))) {
+          if (!maze[y][x].puzzle && (x !== 0 || y !== 0) && (x !== mazeWidth-1 || y !== mazeHeight-1)) {
             if (Math.random() < 0.1) {
               maze[y][x].battle = true;
             }
@@ -307,10 +344,10 @@
     function getUnvisitedNeighbors(cell) {
       let neighbors = [];
       let { x, y } = cell;
-      if (y > 0 && !maze[y - 1][x].visited) neighbors.push(maze[y - 1][x]);
-      if (x < mazeWidth - 1 && !maze[y][x + 1].visited) neighbors.push(maze[y][x + 1]);
-      if (y < mazeHeight - 1 && !maze[y + 1][x].visited) neighbors.push(maze[y + 1][x]);
-      if (x > 0 && !maze[y][x - 1].visited) neighbors.push(maze[y][x - 1]);
+      if (y > 0 && !maze[y-1][x].visited) neighbors.push(maze[y-1][x]);
+      if (x < mazeWidth-1 && !maze[y][x+1].visited) neighbors.push(maze[y][x+1]);
+      if (y < mazeHeight-1 && !maze[y+1][x].visited) neighbors.push(maze[y+1][x]);
+      if (x > 0 && !maze[y][x-1].visited) neighbors.push(maze[y][x-1]);
       return neighbors;
     }
 
@@ -334,11 +371,14 @@
     }
 
     /* ==== Отрисовка лабиринта ==== */
-    const mazeContainer = document.getElementById("maze-container");
+    const playerMazeContainer = document.getElementById("maze-container");
+    const gmMazeContainer = document.getElementById("gm-maze-container");
 
-    function renderMaze() {
-      mazeContainer.innerHTML = "";
-      mazeContainer.style.gridTemplateColumns = `repeat(${mazeWidth}, ${cellSize}px)`;
+    // Отрисовка для игроков (с туманом)
+    function renderPlayerMaze() {
+      playerMazeContainer.innerHTML = "";
+      playerMazeContainer.style.gridTemplateColumns = `repeat(${mazeWidth}, ${cellSize}px)`;
+      const activePlayer = players[currentPlayerIndex];
       for (let y = 0; y < mazeHeight; y++) {
         for (let x = 0; x < mazeWidth; x++) {
           const cell = maze[y][x];
@@ -349,19 +389,17 @@
           if (cell.walls.bottom) cellDiv.classList.add("wall-bottom");
           if (cell.walls.left) cellDiv.classList.add("wall-left");
           if (cell.puzzle && !cell.solved) cellDiv.classList.add("puzzle");
-          // Финальная ячейка – дверь главного зала
-          if (x === mazeWidth - 1 && y === mazeHeight - 1) {
+          if (x === mazeWidth-1 && y === mazeHeight-1) {
             cellDiv.classList.add("final");
             cellDiv.innerText = "Дверь";
           }
-          // Точка боя
           if (cell.battle) {
             const battleMarker = document.createElement("div");
             battleMarker.classList.add("battle-marker");
             cellDiv.appendChild(battleMarker);
           }
-          // Отображаем иконки игроков, если они находятся в этой клетке
-          players.forEach((p, index) => {
+          // Отображаем иконки игроков, если они находятся в клетке
+          players.forEach(p => {
             if (p.x === x && p.y === y) {
               const img = document.createElement("img");
               img.src = p.icon;
@@ -369,39 +407,81 @@
               img.style.width = "16px";
               img.style.height = "16px";
               img.style.position = "absolute";
-              img.style.left = (2 + (index * 2)) + "px";
-              img.style.top = (2 + (index * 2)) + "px";
+              img.style.left = "2px";
+              img.style.top = "2px";
               cellDiv.appendChild(img);
             }
           });
-          // Туман войны: показываем только клетки, находящиеся в радиусе visibilityRange от активного игрока
-          const currentPlayer = players[currentPlayerIndex];
-          if (Math.max(Math.abs(x - currentPlayer.x), Math.abs(y - currentPlayer.y)) > visibilityRange) {
+          // Если активный игрок не находится в радиусе видимости, накладываем туман
+          if (Math.max(Math.abs(x - activePlayer.x), Math.abs(y - activePlayer.y)) > visibilityRange) {
             cellDiv.classList.add("fog");
           }
           cellDiv.id = `cell-${x}-${y}`;
-          mazeContainer.appendChild(cellDiv);
+          playerMazeContainer.appendChild(cellDiv);
         }
       }
     }
 
-    function updateMaze() {
-      renderMaze();
-      updateTurnInfo();
-      checkCurrentCell();
+    // Отрисовка для ГМ – без тумана
+    function renderGMMaze() {
+      gmMazeContainer.innerHTML = "";
+      gmMazeContainer.style.gridTemplateColumns = `repeat(${mazeWidth}, ${cellSize}px)`;
+      for (let y = 0; y < mazeHeight; y++) {
+        for (let x = 0; x < mazeWidth; x++) {
+          const cell = maze[y][x];
+          const cellDiv = document.createElement("div");
+          cellDiv.classList.add("cell");
+          if (cell.walls.top) cellDiv.classList.add("wall-top");
+          if (cell.walls.right) cellDiv.classList.add("wall-right");
+          if (cell.walls.bottom) cellDiv.classList.add("wall-bottom");
+          if (cell.walls.left) cellDiv.classList.add("wall-left");
+          if (cell.puzzle && !cell.solved) cellDiv.classList.add("puzzle");
+          if (x === mazeWidth-1 && y === mazeHeight-1) {
+            cellDiv.classList.add("final");
+            cellDiv.innerText = "Дверь";
+          }
+          if (cell.battle) {
+            const battleMarker = document.createElement("div");
+            battleMarker.classList.add("battle-marker");
+            cellDiv.appendChild(battleMarker);
+          }
+          // Показываем иконки игроков
+          players.forEach(p => {
+            if (p.x === x && p.y === y) {
+              const img = document.createElement("img");
+              img.src = p.icon;
+              img.alt = p.name;
+              img.style.width = "16px";
+              img.style.height = "16px";
+              img.style.position = "absolute";
+              img.style.left = "2px";
+              img.style.top = "2px";
+              cellDiv.appendChild(img);
+            }
+          });
+          cellDiv.id = `gm-cell-${x}-${y}`;
+          gmMazeContainer.appendChild(cellDiv);
+        }
+      }
+    }
+
+    function renderAllViews() {
+      renderPlayerMaze();
+      if (gmPlayer) renderGMMaze();
     }
 
     /* ==== Управление ходом ==== */
+    let currentPlayerIndex = 0; // только игроки, ГМ не участвует в ходах
+
     function updateTurnInfo() {
-      const currentPlayer = players[currentPlayerIndex];
-      turnInfoSpan.innerText = `Ход: ${currentPlayer.name} (Осталось ходов: ${currentPlayer.movesLeft})`;
-      keysCountEl.innerText = currentPlayer.keys;
+      const activePlayer = players[currentPlayerIndex];
+      document.getElementById("turnInfo").innerText = `Ход: ${activePlayer.name} (Осталось ходов: ${activePlayer.movesLeft})`;
+      document.getElementById("keysCount").innerText = activePlayer.keys;
     }
 
-    // Перемещение текущего игрока
     function movePlayer(direction) {
-      const currentPlayer = players[currentPlayerIndex];
-      let cx = currentPlayer.x, cy = currentPlayer.y;
+      const activePlayer = players[currentPlayerIndex];
+      let cx = activePlayer.x, cy = activePlayer.y;
       const cell = maze[cy][cx];
       let newX = cx, newY = cy;
       if (direction === "up" && !cell.walls.top) newY--;
@@ -409,22 +489,25 @@
       else if (direction === "left" && !cell.walls.left) newX--;
       else if (direction === "right" && !cell.walls.right) newX++;
       if (newX < 0 || newX >= mazeWidth || newY < 0 || newY >= mazeHeight) return;
-      currentPlayer.x = newX;
-      currentPlayer.y = newY;
-      currentPlayer.movesLeft--;
-      updateMaze();
-      // Если текущий игрок исчерпал ходы – переходим к следующему
-      if (currentPlayer.movesLeft <= 0) {
-        currentPlayer.movesLeft = currentPlayer.moveRange;
+      activePlayer.x = newX;
+      activePlayer.y = newY;
+      activePlayer.movesLeft--;
+      renderAllViews();
+      checkCurrentCell();
+      // Если игрок израсходовал ходы, переходим к следующему
+      if (activePlayer.movesLeft <= 0) {
+        activePlayer.movesLeft = activePlayer.moveRange;
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        updateMaze();
+        updateTurnInfo();
+        renderAllViews();
+      } else {
+        updateTurnInfo();
       }
     }
 
-    // Проверка событий в клетке для текущего игрока
     function checkCurrentCell() {
-      const currentPlayer = players[currentPlayerIndex];
-      const cell = maze[currentPlayer.y][currentPlayer.x];
+      const activePlayer = players[currentPlayerIndex];
+      const cell = maze[activePlayer.y][activePlayer.x];
       if (cell.battle) {
         triggerBattle(cell);
         return;
@@ -433,9 +516,10 @@
         triggerPuzzle(cell);
         return;
       }
-      if (currentPlayer.x === mazeWidth - 1 && currentPlayer.y === mazeHeight - 1) {
-        if (currentPlayer.keys >= 3) {
-          triggerFinalDoor();
+      // Финальная ячейка – дверь главного зала
+      if (activePlayer.x === mazeWidth-1 && activePlayer.y === mazeHeight-1) {
+        if (activePlayer.keys >= 3) {
+          triggerDoorHack();
         } else {
           showModal(`<p>Дверь заблокирована. Соберите 3 ключа, чтобы войти в главный зал.</p>
                      <button onclick="closeModal()">Закрыть</button>`);
@@ -444,22 +528,19 @@
     }
 
     /* ==== Модальное окно ==== */
-    const modal = document.getElementById("modal");
-    const modalContent = document.getElementById("modal-content");
-
     function showModal(content) {
-      modalContent.innerHTML = content;
-      modal.style.display = "flex";
+      document.getElementById("modal-content").innerHTML = content;
+      document.getElementById("modal").style.display = "flex";
     }
     function closeModal() {
-      modal.style.display = "none";
-      updateMaze();
+      document.getElementById("modal").style.display = "none";
+      renderAllViews();
     }
     function restartGame() {
       location.reload();
     }
 
-    /* ==== События: загадки, бой и финал ==== */
+    /* ==== События: загадки, бой и взлом двери ==== */
     function triggerPuzzle(cell) {
       const puzzle = cell.puzzleData;
       let html = `<h2>Загадка</h2>
@@ -474,17 +555,17 @@
     function checkPuzzle(x, y) {
       const answer = document.getElementById("puzzleAnswer").value.trim().toLowerCase();
       const correct = maze[y][x].puzzleData.answer.toLowerCase();
-      const currentPlayer = players[currentPlayerIndex];
+      const activePlayer = players[currentPlayerIndex];
       if (answer === correct) {
         maze[y][x].solved = true;
-        currentPlayer.keys++;
+        activePlayer.keys++;
         showModal(`<p>Верно! Вы получили Ключ.</p>
                    <button onclick="closeModal()">Продолжить</button>`);
       } else {
         showModal(`<p>Неверный ответ. Попробуйте позже.</p>
                    <button onclick="closeModal()">Закрыть</button>`);
       }
-      updateMaze();
+      renderAllViews();
     }
 
     function triggerBattle(cell) {
@@ -494,26 +575,49 @@
                  <button onclick="closeModal()">Продолжить</button>`);
     }
 
-    function triggerFinalDoor() {
-      let html = `<h2>Главный зал</h2>
-                  <p>Перед вами две двери. Одна ведёт к свободе, другая – к гибели.</p>
-                  <p>Выберите дверь:</p>
-                  <button onclick="chooseFinalDoor(0)">Дверь 1</button>
-                  <button onclick="chooseFinalDoor(1)">Дверь 2</button>`;
+    // Мини-игра взлома двери (финал)
+    function triggerDoorHack() {
+      let html = `<h2>Взлом двери</h2>
+                  <p>Начните взлом: нажмите кнопку, чтобы запустить процесс.<br>
+                  Камера начнёт трястись – остановите её вовремя!</p>
+                  <button onclick="attemptDoorHack()">Взломать</button>`;
       showModal(html);
     }
 
-    let safeDoor = Math.random() < 0.5 ? 0 : 1;
-    function chooseFinalDoor(choice) {
-      if (choice === safeDoor) {
-        showModal(`<h2>Победа!</h2>
-                   <p>Вы выбрали правильную дверь и вышли на свободу!</p>
-                   <button onclick="restartGame()">Начать заново</button>`);
-      } else {
-        showModal(`<h2>Поражение</h2>
-                   <p>Неверный выбор! Эта дверь оказалась смертельной.</p>
-                   <button onclick="restartGame()">Начать заново</button>`);
-      }
+    function attemptDoorHack() {
+      const modalContentEl = document.getElementById("modal-content");
+      modalContentEl.classList.add("shake");
+      // После 2 секунд убираем тряску и определяем исход
+      setTimeout(() => {
+        modalContentEl.classList.remove("shake");
+        // Случайное число – успех если < 0.7 (70% шанс)
+        if (Math.random() < 0.7) {
+          showModal(`<h2>Победа!</h2>
+                     <p>Взлом успешен! Вы вышли на свободу!</p>
+                     <button onclick="restartGame()">Начать заново</button>`);
+        } else {
+          showModal(`<h2>Поражение</h2>
+                     <p>Взлом не удался, дверь закрылась!</p>
+                     <button onclick="restartGame()">Начать заново</button>`);
+        }
+      }, 2000);
+    }
+
+    /* ==== Запуск игры ==== */
+    // При старте игры назначаем стартовые позиции:
+    // Для игроков: углы лабиринта
+    function startGame() {
+      characterSelectionDiv.style.display = "none";
+      gameScreenDiv.style.display = "block";
+      // Если GM выбран, показываем его вид
+      if (gmPlayer) document.getElementById("gm-view").style.display = "block";
+      // Назначаем стартовые позиции для 4 игроков:
+      players[0].x = 0; players[0].y = 0;
+      players[1].x = 0; players[1].y = mazeHeight - 1;
+      players[2].x = mazeWidth - 1; players[2].y = 0;
+      players[3].x = mazeWidth - 1; players[3].y = mazeHeight - 1;
+      updateTurnInfo();
+      initMaze();
     }
   </script>
 </body>
