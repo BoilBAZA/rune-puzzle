@@ -2,637 +2,306 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Невидимая Грань</title>
-  <!-- Подключаем шрифт Brahms Gotisch Cyrillic (убедитесь, что файлы шрифта находятся в том же каталоге) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Лабиринт Башни Дюны</title>
   <style>
-    @font-face {
-      font-family: 'Brahms Gotisch Cyrillic';
-      src: url('BrahmsGotischCyrillic.woff2') format('woff2'),
-           url('BrahmsGotischCyrillic.woff') format('woff');
-      font-weight: normal;
-      font-style: normal;
-    }
-  </style>
-  <!-- Подключаем jsPDF (если понадобится в будущем, но сейчас формируем текстовый файл) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    /* Фон для всего сайта */
+    /* Общие стили */
     body {
-      font-family: Arial, sans-serif;
-      background: url('https://i.imgur.com/WvxgzdK.jpg') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
       margin: 0;
       padding: 0;
+      background: #f4f4f4;
+      color: #333;
     }
-    /* Контейнер для центрирования контента */
-    .container {
-      max-width: 800px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #000;
-      /* Рамка убрана */
-      border-radius: 5px;
-    }
-    /* Заголовки в готическом стиле */
-    h1, h2, h3, h4 {
-      text-align: center;
-      font-family: 'Brahms Gotisch Cyrillic', serif;
-    }
-    .tab {
-      display: none;
-      padding: 20px;
-      background: #000;
-      margin-bottom: 20px;
-      /* Рамка убрана */
-      border-radius: 5px;
-    }
-    .tab.active {
-      display: block;
-    }
-    .tabs-navigation {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .tabs-navigation button {
-      padding: 10px 15px;
-      margin: 0 5px;
-      /* Рамка убрана */
-      background-color: #000;
+    header {
+      background: #222;
       color: #fff;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 20px 0;
+      text-align: center;
     }
-    .tabs-navigation button.active {
-      background-color: #fff;
-      color: #000;
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
     }
-    label {
-      display: block;
+    nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
       margin-top: 10px;
-      text-align: center;
     }
-    input[type="text"],
-    input[type="number"],
-    select,
-    textarea {
-      width: 100%;
-      max-width: 400px;
-      padding: 8px;
-      margin-top: 5px;
-      box-sizing: border-box;
-      background-color: #222;
+    nav ul li {
+      margin: 0 15px;
+    }
+    nav ul li a {
       color: #fff;
-      /* Рамка убрана */
-      border-radius: 3px;
-      display: block;
-      margin: 0 auto;
-    }
-    /* Скрываем стандартный input для загрузки файла */
-    input[type="file"] {
-      display: none;
-    }
-    .character-card {
-      /* Рамка убрана */
-      border-radius: 5px;
-      padding: 20px;
-      background-color: #000;
-      text-align: center;
-    }
-    .navigation-buttons {
-      text-align: center;
-      margin-top: 15px;
-    }
-    .navigation-buttons button {
-      padding: 10px 15px;
-      margin: 5px;
-      /* Рамка убрана */
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #000;
-      color: #fff;
-    }
-    .navigation-buttons button:hover {
-      opacity: 0.8;
-    }
-    .hint {
-      font-size: 0.9em;
-      color: #aaa;
-    }
-    a {
-      color: #fff;
-      text-decoration: underline;
-    }
-    /* Стили для радио-кнопок с галочкой */
-    .radio-label {
-      cursor: pointer;
-      padding: 5px;
-      /* Рамка убрана */
-      border-radius: 3px;
-      margin: 5px;
-      display: inline-block;
-      max-width: 400px;
-      text-align: center;
-      background-color: #222;
-    }
-    input[type="radio"] {
-      display: none;
-    }
-    input[type="radio"]:checked + .radio-label::after {
-      content: " ✓";
-      color: #fff;
+      text-decoration: none;
       font-weight: bold;
+      transition: color 0.3s;
     }
-    /* Стили для карусели выбора класса */
-    #carousel {
-      position: relative;
-      text-align: center;
+    nav ul li a:hover {
+      color: #ff6600;
+    }
+    main {
+      max-width: 1000px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    section h2 {
+      border-bottom: 2px solid #ff6600;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+    section h3 {
+      margin-top: 25px;
+      color: #ff6600;
+    }
+    p, ul, ol, table {
+      margin: 15px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-bottom: 20px;
-      background-color: #000;
-      padding: 20px;
-      /* Рамка убрана */
-      border-radius: 5px;
     }
-    #carousel button {
-      background-color: #000;
-      color: #fff;
-      /* Рамка убрана */
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
       padding: 10px;
-      cursor: pointer;
-      border-radius: 5px;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    #prevClass {
-      left: 10px;
-    }
-    #nextClass {
-      right: 10px;
-    }
-    /* Плавное изменение прозрачности для карусели */
-    #classContent {
-      transition: opacity 0.5s ease-in-out;
-    }
-    /* Стили для области загрузки файла (drag & drop) */
-    #dropArea {
-      /* Рамка убрана */
-      padding: 20px;
-      border-radius: 5px;
       text-align: center;
-      cursor: pointer;
-      transition: border-color 0.3s;
     }
-    #dropArea img {
-      max-width: 100%;
-      border-radius: 5px;
+    blockquote {
+      margin: 15px 20px;
+      padding: 10px 20px;
+      background: #eee;
+      border-left: 5px solid #ff6600;
+      font-style: italic;
+    }
+    footer {
+      background: #222;
+      color: #fff;
+      text-align: center;
+      padding: 10px 0;
+    }
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      nav ul {
+        flex-direction: column;
+      }
+      nav ul li {
+        margin: 5px 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Заголовок -->
-    <h1>Невидимая Грань</h1>
-    
-    <!-- Верхняя навигация по вкладкам -->
-    <div class="tabs-navigation">
-      <button type="button" class="tab-button active" data-tab="tab1">Основные данные</button>
-      <button type="button" class="tab-button" data-tab="tab2">Класс персонажа</button>
-      <button type="button" class="tab-button" data-tab="tab3">Внешность персонажа</button>
-      <button type="button" class="tab-button" data-tab="tab4">История персонажа</button>
-    </div>
-    
-    <!-- Вкладка 1: Основные данные -->
-    <div id="tab1" class="tab active">
-      <h2>Основные данные</h2>
-      <form id="form-tab1">
-        <label for="firstName">Имя персонажа<br><span class="hint">(Например: Фридрих, Ярослав, Лех)</span></label>
-        <input type="text" id="firstName" name="firstName" placeholder="Например: Фридрих" required>
-        
-        <label for="lastName">Фамилия персонажа<br><span class="hint">(Например: Вацлав, Гюнтер, Мариуш)</span></label>
-        <input type="text" id="lastName" name="lastName" placeholder="Например: Вацлав" required>
-        
-        <label for="age">Возраст (в годах)<br><span class="hint">(Введите возраст персонажа)</span></label>
-        <input type="number" id="age" name="age" min="0" placeholder="Например: 25" required>
-        
-        <label for="bodyType">Телосложение<br><span class="hint">(Выберите телосложение персонажа)</span></label>
-        <select id="bodyType" name="bodyType" required>
-          <option value="">Выберите телосложение</option>
-          <option value="Худощавое">Худощавое</option>
-          <option value="Нормальное">Нормальное</option>
-          <option value="Крепкое">Крепкое</option>
-          <option value="Толстяк">Толстяк</option>
-        </select>
-      </form>
-      <div class="navigation-buttons">
-        <button type="button" onclick="nextTab(1)">Далее</button>
-      </div>
-    </div>
-    
-    <!-- Вкладка 2: Выбор класса персонажа -->
-    <div id="tab2" class="tab">
-      <h2>Выбор класса персонажа</h2>
-      <div id="carousel">
-        <button id="prevClass">Назад</button>
-        <div id="classContent" style="display: inline-block; width: 80%; vertical-align: middle;">
-          <!-- Данные о классе обновляются динамически -->
-        </div>
-        <button id="nextClass">Далее</button>
-      </div>
-      <div class="navigation-buttons">
-        <button type="button" onclick="prevTab(2)">Назад</button>
-        <button type="button" id="tab2NextButton" onclick="goToNextTab()" disabled>Далее</button>
-      </div>
-    </div>
-    
-    <!-- Вкладка 3: Внешность персонажа -->
-    <div id="tab3" class="tab">
-      <h2>Внешность персонажа</h2>
-      <p style="text-align: center;">
-        Загрузите изображение вашего персонажа. Чтобы сгенерировать арт, воспользуйтесь ресурсом 
-        <a href="https://www.krea.ai/apps/image/flux" target="_blank">Krea</a> 
-        (черно-белое изображение, средневековый сеттинг, в стиле фрески, слабая детализация). Если требуется заменить лицо, воспользуйтесь 
-        <a href="https://vmodel.ai/face-swap" target="_blank">vmodel.ai</a>.
+  <header>
+    <h1>Лабиринт Башни Дюны</h1>
+    <nav>
+      <ul>
+        <li><a href="#concept">Концепция</a></li>
+        <li><a href="#mechanics">Механики</a></li>
+        <li><a href="#buttons">Кнопки</a></li>
+        <li><a href="#puzzles">Проверки</a></li>
+        <li><a href="#minigames">Мини-игры</a></li>
+        <li><a href="#final">Финал</a></li>
+        <li><a href="#conclusion">Заключение</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <!-- Концепция -->
+    <section id="concept">
+      <h2>Концепция мини-игры "Лабиринт Башни Дюны"</h2>
+      <p>
+        Игроки выбирают <strong>свой персонаж</strong>, который <strong>спаунится в лабиринте</strong> на <strong>стартовой позиции</strong>.
+        Они <strong>движутся по клеткам</strong>, где их ждут <strong>препятствия, загадки и ловушки</strong>.
       </p>
-      <form id="form-tab3">
-        <!-- Область для загрузки файла (drag & drop) -->
-        <div id="dropArea">
-          <img src="https://i.imgur.com/BcqKIDB.jpg" alt="Нажмите для выбора файла или перетащите файл сюда">
-          <p class="hint">Нажмите на картинку или перетащите файл сюда</p>
-        </div>
-        <input type="file" id="characterImage" name="characterImage" accept="image/*">
-      </form>
-      <div class="navigation-buttons">
-        <button type="button" onclick="prevTab(3)">Назад</button>
-        <button type="button" onclick="nextTab(3)">Далее</button>
-      </div>
-    </div>
-    
-    <!-- Вкладка 4: История персонажа -->
-    <div id="tab4" class="tab">
-      <h2>История персонажа</h2>
-      <form id="form-history">
-        <!-- Родители -->
-        <label for="parentsHistory">Кем были родители</label>
-        <textarea id="parentsHistory" name="parentsHistory" placeholder="Опишите краткую историю происхождения родителей, кем были, чем занимались" required></textarea>
-        
-        <!-- Братья/сёстры -->
-        <label for="siblingsStatus">Есть ли братья или сёстры</label>
-        <select id="siblingsStatus" name="siblingsStatus" required onchange="handleSiblingsChange()">
-          <option value="">Выберите вариант</option>
-          <option value="allAlive">Есть, все живы</option>
-          <option value="allDead">Есть, но все мертвы</option>
-          <option value="someDead">Есть, но кто-то из них мертв</option>
-          <option value="none">Отсутствуют</option>
-        </select>
-        <div id="siblingsExtra" style="display:none; margin-top:10px;">
-          <label style="text-align:center;">Информация о братьях/сёстрах</label>
-          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
-          <div id="siblingsDeathDiv" style="display:none;">
-            <label style="text-align:center;">Информация о смерти</label>
-            <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, как умерли"></textarea>
-          </div>
-        </div>
-        
-        <!-- Детство -->
-        <label for="childhood">Детство персонажа</label>
-        <textarea id="childhood" name="childhood" placeholder="Опишите, чем увлекался и интересовался персонаж в детстве" required></textarea>
-        
-        <!-- Друзья детства -->
-        <label for="friendsStatus">Были ли у персонажа друзья детства?</label>
-        <select id="friendsStatus" name="friendsStatus" required onchange="handleFriendsChange()">
-          <option value="">Выберите вариант</option>
-          <option value="yes">Да</option>
-          <option value="no">Нет</option>
-        </select>
-        <div id="friendsExtra" style="display:none; margin-top:10px;">
-          <label style="text-align:center;">Информация о друзьях детства</label>
-          <textarea id="friendsInfo" name="friendsInfo" placeholder="Опишите, чем занимались друзья детства, поддерживают ли контакты и т.д."></textarea>
-        </div>
-        
-        <!-- Работа -->
-        <label for="workHistory">Кем он работал</label>
-        <textarea id="workHistory" name="workHistory" placeholder="Опишите, чем занимался персонаж, кем он работал" required></textarea>
-        
-        <!-- Дополнительные поля -->
-        <label for="significantEvents">Значимые события в жизни</label>
-        <textarea id="significantEvents" name="significantEvents" placeholder="Опишите важные события, повлиявшие на жизнь персонажа"></textarea>
-        
-        <label for="motives">Мотивы и цели</label>
-        <textarea id="motives" name="motives" placeholder="Опишите, чего стремится достичь персонаж, его цели"></textarea>
-        
-        <label for="characterTraits">Особенности характера</label>
-        <textarea id="characterTraits" name="characterTraits" placeholder="Опишите характер, привычки, сильные и слабые стороны персонажа"></textarea>
-      </form>
-      <div class="navigation-buttons">
-        <button type="button" onclick="prevTab(4)">Назад</button>
-        <!-- Кнопка "Завершить" формирует текстовый файл -->
-        <button type="button" onclick="generateTextFile()">Завершить</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Скрипты для переключения вкладок и карусели -->
-  <script>
-    // Переключение вкладок по верхним кнопкам
-    document.querySelectorAll('.tab-button').forEach(button => {
-      button.addEventListener('click', () => {
-        const tabId = button.getAttribute('data-tab');
-        showTab(tabId);
-      });
-    });
-    function showTab(tabId) {
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector('.tab-button[data-tab="'+tabId+'"]').classList.add('active');
-      // Если переключились на вкладку "Выбор класса", сразу отрисовываем содержимое
-      if(tabId === "tab2") {
-        renderClass();
-      }
-    }
-    function nextTab(currentTabNumber) {
-      showTab('tab' + (currentTabNumber + 1));
-    }
-    function prevTab(currentTabNumber) {
-      showTab('tab' + (currentTabNumber - 1));
-    }
-    
-    // --- Карусель выбора класса ---
-    let classes = [
-      {
-        name: "Боец",
-        image: "https://i.imgur.com/KgTHgNr.jpg",
-        description: "Солдат, привыкший к крови и сражениям. Лишён связей и славы, но знает цену выживанию.",
-        weapons: [
-          "Одноручный меч (изношенный, но ещё пригодный к бою)",
-          "Копьё (прочное, но с ржавым наконечником)"
-        ],
-        abilities: [
-          "Несокрушимый: В течение короткого времени получает значительное снижение урона от всех атак. (1 раз за бой)",
-          "Меткий выстрел: Следующий выстрел наносит урон в слабое место противника, значительно увеличивая эффективность. (1 раз за бой)"
-        ]
-      },
-      {
-        name: "Дипломат/Бард",
-        image: "https://i.imgur.com/6zqVCKU.jpg",
-        description: "Человек слова, привыкший решать вопросы речью, а не оружием. Хотя некогда имел влияние, теперь он никто.",
-        weapons: [
-          "Тонкий кинжал (скрываемый, используется для самообороны)",
-          "Лютня (как музыкальный инструмент или импровизированная дубина)"
-        ],
-        abilities: [
-          "Финт ушами: Может убедить врага или NPC отказаться от агрессивных действий. (1 раз за бой или локацию)",
-          "Боевой дух: Мотивирует союзника, временно увеличивая его решимость и боевой настрой. (1 раз за бой)"
-        ]
-      },
-      {
-        name: "Вор/Прохиндей",
-        image: "https://i.imgur.com/urHZMiB.jpg",
-        description: "Ловкач, привыкший решать вопросы хитростью. Живёт с риском, полагаясь на свою ловкость и удачу.",
-        weapons: [
-          "Короткий нож (быстро вытаскивается, но не для прямого боя)",
-          "Гибкий дротик (скрытый, но малополезный в драке)"
-        ],
-        abilities: [
-          "Тёмные руки: Может незаметно забрать у врага или NPC важный предмет. (1 раз за бой или локацию)",
-          "Наглая ложь: Один раз за локацию заставляет NPC поверить в его ложь. (1 раз за бой или локацию)"
-        ]
-      },
-      {
-        name: "Пьяница",
-        image: "https://i.imgur.com/YZWU9sb.jpg",
-        description: "Никто не принимает его всерьёз, но он уже прошёл через многое. В зависимости от напитка, может стать кем угодно.",
-        weapons: [
-          "Разбитая бутылка (как импровизированный нож)",
-          "Деревянная дубина (больше как посох, но можно драться)"
-        ],
-        abilities: [
-          "Пьяная ярость: На короткое время становится менее чувствительным к боли и получает большую физическую мощь. (1 раз за бой или локацию)",
-          "Мудрость в бокале: Один раз за локацию может вспомнить или случайно разгадать что-то важное. (1 раз за бой или локацию)"
-        ]
-      }
-    ];
-    let currentClassIndex = 0;
-    let userSelection = { classIndex: null, weapon: null, ability: null };
-    function changeClass(newIndex) {
-      const container = document.getElementById("classContent");
-      container.style.opacity = 0;
-      setTimeout(() => {
-        currentClassIndex = newIndex;
-        renderClass();
-        container.style.opacity = 1;
-      }, 300);
-    }
-    function renderClass() {
-      const classData = classes[currentClassIndex];
-      const container = document.getElementById("classContent");
-      container.innerHTML = `
-        <img src="${classData.image}" alt="${classData.name}" style="max-width:300px; display:block; margin: 0 auto;">
-        <h3>${classData.name}</h3>
-        <p>${classData.description}</p>
-        <div>
-          <h4>Оружие на выбор:</h4>
-          <div>
-            <input type="radio" id="weapon0" name="weaponSelection" value="0">
-            <label class="radio-label" for="weapon0">${classData.weapons[0]}</label>
-          </div>
-          <div>
-            <input type="radio" id="weapon1" name="weaponSelection" value="1">
-            <label class="radio-label" for="weapon1">${classData.weapons[1]}</label>
-          </div>
-        </div>
-        <div>
-          <h4>Уникальная способность:</h4>
-          <div>
-            <input type="radio" id="ability0" name="abilitySelection" value="0">
-            <label class="radio-label" for="ability0">${classData.abilities[0]}</label>
-          </div>
-          <div>
-            <input type="radio" id="ability1" name="abilitySelection" value="1">
-            <label class="radio-label" for="ability1">${classData.abilities[1]}</label>
-          </div>
-        </div>
-      `;
-      document.getElementById("tab2NextButton").disabled = true;
-      document.getElementsByName("weaponSelection").forEach(radio => { radio.addEventListener("change", checkSelections); });
-      document.getElementsByName("abilitySelection").forEach(radio => { radio.addEventListener("change", checkSelections); });
-    }
-    function checkSelections() {
-      const weaponSelected = document.querySelector('input[name="weaponSelection"]:checked');
-      const abilitySelected = document.querySelector('input[name="abilitySelection"]:checked');
-      if (weaponSelected && abilitySelected) {
-        userSelection.classIndex = currentClassIndex;
-        userSelection.weapon = weaponSelected.value;
-        userSelection.ability = abilitySelected.value;
-        document.getElementById("tab2NextButton").disabled = false;
-      }
-    }
-    document.getElementById("prevClass").addEventListener("click", () => { changeClass((currentClassIndex - 1 + classes.length) % classes.length); });
-    document.getElementById("nextClass").addEventListener("click", () => { changeClass((currentClassIndex + 1) % classes.length); });
-    function goToNextTab() { nextTab(2); }
-    
-    // --- Обработка информации о братьях/сёстрах ---
-    function handleSiblingsChange() {
-      const status = document.getElementById('siblingsStatus').value;
-      const container = document.getElementById('siblingsExtra');
-      let html = '';
-      if (status === 'allAlive') {
-        html = `
-          <label style="text-align:center;">Информация о братьях/сёстрах</label>
-          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
-        `;
-      } else if (status === 'allDead') {
-        html = `
-          <label style="text-align:center;">Информация о братьях/сёстрах</label>
-          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
-          <label style="text-align:center;">Информация о смерти</label>
-          <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, как умерли"></textarea>
-        `;
-      } else if (status === 'someDead') {
-        html = `
-          <label style="text-align:center;">Информация о братьях/сёстрах</label>
-          <textarea id="siblingsInfo" name="siblingsInfo" placeholder="Введите имена и краткую историю о каждом"></textarea>
-          <label style="text-align:center;">Кто умер и как</label>
-          <textarea id="siblingsDeathInfo" name="siblingsDeathInfo" placeholder="Опишите, кто умер и как"></textarea>
-        `;
-      }
-      container.innerHTML = html;
-      container.style.display = (status && status !== 'none') ? 'block' : 'none';
-    }
-    
-    // --- Обработка информации о друзьях детства ---
-    function handleFriendsChange() {
-      const status = document.getElementById('friendsStatus').value;
-      const container = document.getElementById('friendsExtra');
-      container.style.display = (status === 'yes') ? 'block' : 'none';
-    }
-    
-    // Функция для генерации текстового файла со всей информацией
-    async function generateTextFile() {
-      let text = "";
-      function addSection(title, content) {
-        text += title + "\n" + (content || "—") + "\n\n";
-      }
-      
-      addSection("Имя персонажа", document.getElementById('firstName').value.trim());
-      addSection("Фамилия персонажа", document.getElementById('lastName').value.trim());
-      addSection("Возраст", document.getElementById('age').value.trim());
-      addSection("Телосложение", document.getElementById('bodyType').value);
-      
-      let className = "";
-      let weaponChosen = "";
-      let abilityChosen = "";
-      if (userSelection.classIndex !== null) {
-        const cData = classes[userSelection.classIndex];
-        className = cData.name;
-        weaponChosen = cData.weapons[userSelection.weapon];
-        abilityChosen = cData.abilities[userSelection.ability];
-      }
-      addSection("Класс персонажа", className);
-      addSection("Выбранное оружие", weaponChosen);
-      addSection("Уникальная способность", abilityChosen);
-      
-      addSection("История родителей", document.getElementById('parentsHistory').value.trim());
-      addSection("Братья/сёстры (статус)", document.getElementById('siblingsStatus').value);
-      if (document.getElementById('siblingsStatus').value !== "none") {
-        addSection("Информация о братьях/сёстрах", document.getElementById('siblingsInfo') ? document.getElementById('siblingsInfo').value.trim() : "");
-        if (document.getElementById('siblingsStatus').value === "allDead" || document.getElementById('siblingsStatus').value === "someDead") {
-          addSection("Информация о смерти", document.getElementById('siblingsDeathInfo') ? document.getElementById('siblingsDeathInfo').value.trim() : "");
-        }
-      }
-      addSection("Детство персонажа", document.getElementById('childhood').value.trim());
-      addSection("Друзья детства (статус)", document.getElementById('friendsStatus').value);
-      if (document.getElementById('friendsStatus').value === "yes") {
-        addSection("Информация о друзьях детства", document.getElementById('friendsInfo') ? document.getElementById('friendsInfo').value.trim() : "");
-      }
-      addSection("История работы", document.getElementById('workHistory').value.trim());
-      addSection("Значимые события", document.getElementById('significantEvents').value.trim());
-      addSection("Мотивы и цели", document.getElementById('motives').value.trim());
-      addSection("Особенности характера", document.getElementById('characterTraits').value.trim());
-      
-      // Обработка изображения: если прикреплено, используем Blob URL
-      const fileInput = document.getElementById('characterImage');
-      if (fileInput.files && fileInput.files[0]) {
-        const blobURL = URL.createObjectURL(fileInput.files[0]);
-        addSection("Ссылка на изображение персонажа", blobURL);
-      } else {
-        addSection("Ссылка на изображение персонажа", "Изображение не загружено.");
-      }
-      
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "character.txt";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  </script>
-  
-  <!-- Скрипт для drag & drop в области загрузки файла -->
-  <script>
-    const dropArea = document.getElementById('dropArea');
-    const fileInput = document.getElementById('characterImage');
-    dropArea.addEventListener('click', () => { fileInput.click(); });
-    dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.borderColor = "#aaa"; });
-    dropArea.addEventListener('dragleave', (e) => { e.preventDefault(); dropArea.style.borderColor = "#fff"; });
-    dropArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropArea.style.borderColor = "#fff";
-      const files = e.dataTransfer.files;
-      if (files.length) {
-        const dt = new DataTransfer();
-        dt.items.add(files[0]);
-        fileInput.files = dt.files;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          dropArea.innerHTML = `<img src="${event.target.result}" alt="Предпросмотр выбранного файла" style="max-width:100%; cursor: pointer;"> <p class="hint">Нажмите на картинку или перетащите файл сюда</p>`;
-        };
-        reader.readAsDataURL(files[0]);
-      }
-    });
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          dropArea.innerHTML = `<img src="${event.target.result}" alt="Предпросмотр выбранного файла" style="max-width:100%; cursor: pointer;"> <p class="hint">Нажмите на картинку или перетащите файл сюда</p>`;
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      }
-    });
-  </script>
-  
-  <!-- Подключение YouTube IFrame API для автопроигрывания саундтрека -->
-  <script>
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    var player;
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        height: '0',
-        width: '0',
-        videoId: 'ZK40PfIeYII',
-        playerVars: {
-          'autoplay': 1,
-          'controls': 0,
-          'loop': 1,
-          'playlist': 'ZK40PfIeYII',
-          'rel': 0,
-          'showinfo': 0
-        },
-        events: { 'onReady': onPlayerReady }
-      });
-    }
-    function onPlayerReady(event) {
-      event.target.setVolume(5);
-      event.target.playVideo();
-    }
-  </script>
-  <div id="player" style="display: none;"></div>
+    </section>
+    <!-- Основные механики -->
+    <section id="mechanics">
+      <h2>1. Основные механики</h2>
+      <ul>
+        <li>
+          <strong>Каждый персонаж имеет свой радиус перемещения:</strong>
+          <ul>
+            <li><strong>Вахаиб</strong> (Абатур) – 6 клеток за ход.</li>
+            <li><strong>Гнилион</strong> (Харуман) – 8 клеток за ход.</li>
+            <li><strong>Офилнекр</strong> (Гриша) – 5 клеток за ход.</li>
+            <li><strong>Залупатор</strong> – 5 клеток за ход.</li>
+          </ul>
+        </li>
+        <li>Игроки ходят по очереди, выбирая направление (вверх, вниз, влево, вправо).</li>
+        <li>На некоторых клетках расположены особые точки (миниквесты, загадки, проверки).</li>
+        <li>Цель – достичь центра лабиринта, где ждёт финальная битва.</li>
+      </ul>
+    </section>
+    <!-- Игровые кнопки -->
+    <section id="buttons">
+      <h2>2. Игровые кнопки (взаимодействия)</h2>
+      <p>
+        В определённых местах лабиринта игроки натыкаются на триггеры, которые активируют мини-игру.
+      </p>
+      <h3>Варианты кнопок в интерфейсе:</h3>
+      <ol>
+        <li>[Открыть дверь] – требует решения загадки (кодовый замок, символы, математическая головоломка).</li>
+        <li>[Активировать механизм] – проверка ловкости или силы (реакция, мини-игра на тайминг).</li>
+        <li>[Перебраться через преграду] – требует определённого навыка (например, если Гнилион выбрал "сгибаемость", он проходит без проверки).</li>
+        <li>[Обойти ловушку] – проверка внимательности (правильный выбор).</li>
+        <li>[Сразиться с врагом] – небольшая боевая мини-игра (быстрая реакция).</li>
+      </ol>
+    </section>
+    <!-- Загадки и проверки -->
+    <section id="puzzles">
+      <h2>3. Распределение загадок и проверок в лабиринте</h2>
+      <p>
+        Каждый из важных коридоров содержит мини-игру, без прохождения которой нельзя двигаться дальше.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Локация</th>
+            <th>Вид проверки</th>
+            <th>Способ прохождения</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>Запертые ворота</strong></td>
+            <td><strong>Кодовая загадка</strong></td>
+            <td>Ввести правильную последовательность</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>Обвалившийся коридор</strong></td>
+            <td><strong>Проверка силы/ловкости</strong></td>
+            <td>Перепрыгнуть или убрать завал</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Оптический коридор</strong></td>
+            <td><strong>Лабиринт теней</strong></td>
+            <td>Выбрать правильную траекторию</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Песчаная ловушка</strong></td>
+            <td><strong>Выживание (тайминг)</strong></td>
+            <td>Быстро выбраться до полного засыпания</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><strong>Капсула с мутантом</strong></td>
+            <td><strong>Выбор: освободить или уничтожить</strong></td>
+            <td>Открывает новый путь или создает угрозу</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><strong>Тайный проход (за дверью)</strong></td>
+            <td><strong>Комбинация кнопок</strong></td>
+            <td>Найти правильную последовательность</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <!-- Примеры мини-игр -->
+    <section id="minigames">
+      <h2>4. Примеры мини-игр</h2>
+      <article>
+        <h3>🔢 Кодовый замок (Запертые ворота)</h3>
+        <ul>
+          <li>Панель с четырьмя кнопками с цифрами (1, 2, 3, 4).</li>
+          <li>Подсказка: "В пустыне выживает тот, кто следует пути стихий."</li>
+          <li>Игрок должен ввести последовательность: <em>Песок → Ветер → Вода → Солнце</em>.</li>
+          <li>При правильном ответе дверь открывается, а при ошибке включается тревога и появляются 2 стражника.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>🏃 Проверка ловкости (Обвалившийся коридор)</h3>
+        <ul>
+          <li>Запускается анимация обвала.</li>
+          <li>Игрок должен нажать кнопку "Перепрыгнуть" в нужный момент (реакция на таймер).</li>
+          <li>Если игрок успевает – он проходит дальше, иначе получает 2D6 урона и остаётся в завале.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>🔦 Лабиринт теней (Оптический коридор)</h3>
+        <ul>
+          <li>Экран затемняется, остаются только силуэты трёх дверей.</li>
+          <li>Подсказка: "Иди туда, где нет света, но есть путь."</li>
+          <li>Игрок выбирает дверь: при правильном выборе – проходит дальше, при ошибке – получает урон и отбрасывается назад.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>⏳ Песчаная ловушка (Выживание)</h3>
+        <ul>
+          <li>Игрок начинает тонуть в песке.</li>
+          <li>На экране появляются три кнопки: "Двигаться быстро", "Расслабиться и замереть", "Применить предмет (крюк/верёвку)".</li>
+          <li>Только один из вариантов является правильным – при ошибке игрок теряет 1 ход и получает урон.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>🧬 Капсула с мутантом (Выбор судьбы)</h3>
+        <ul>
+          <li>Игроки находят огромный контейнер с существом внутри.</li>
+          <li>Надпись: "Объект: Дельта-7. Уничтожить? Освободить?"</li>
+          <li>Варианты: 
+            <ul>
+              <li><strong>Открыть капсулу</strong> – существо может напасть, но также помочь в финальной битве.</li>
+              <li><strong>Заблокировать</strong> – продолжить движение без изменения событий.</li>
+            </ul>
+          </li>
+          <li>Выбор влияет на исход финального боя с офицером.</li>
+        </ul>
+      </article>
+    </section>
+    <!-- Финальная точка -->
+    <section id="final">
+      <h2>5. Финальная точка: Вход в Зал Садора Крайвиса</h2>
+      <p>
+        После всех испытаний игроки доходят до центра лабиринта. Перед ними финальная дверь с загадкой:
+      </p>
+      <blockquote>
+        "Тот, кто правит пустыней, не оставляет следов. Тот, кто жаждет крови, оставляет лишь пыль."
+      </blockquote>
+      <p>Выбор:</p>
+      <ol>
+        <li>Выбрать "Ветер" – дверь открывается.</li>
+        <li>Выбрать "Кровь" – ловушка с атакой лазеров.</li>
+      </ol>
+      <p>После чего начинается финальный бой.</p>
+    </section>
+    <!-- Заключение -->
+    <section id="conclusion">
+      <h2>Финальное слово гейм-мастера</h2>
+      <blockquote>
+        "Вы преодолели ловушки и секреты Башни Дюны. Теперь перед вами последний шаг – сразиться с тем, кто правит этим адом. Садор уже ждал вас. Теперь – либо вы его, либо он вас."
+      </blockquote>
+      <h2>Заключение</h2>
+      <p>
+        Этот лабиринт превращает прохождение в командное испытание:
+      </p>
+      <ul>
+        <li>Игроки могут координировать свои действия: кто идёт первым, а кто решает загадки.</li>
+        <li>Каждый персонаж уникален – Вахаиб двигается дальше всех, Гнилион находит обходные пути, Гриша взаимодействует с биоматериалами, а Залупатор просто ломает всё на своём пути.</li>
+      </ul>
+      <p>
+        Мини-игра будет доступна на сайте, где игроки смогут двигаться по клеткам, решать загадки и достигать финального зала.
+      </p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Лабиринт Башни Дюны. Все права защищены.</p>
+  </footer>
 </body>
 </html>
