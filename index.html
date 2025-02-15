@@ -27,6 +27,7 @@
       align-items: center;
       justify-content: center;
     }
+    /* Кнопки выбора персонажей: вместо картинок – квадрат с заданным цветом */
     #character-options button {
       margin: 10px;
       border: none;
@@ -35,16 +36,18 @@
       border-radius: 5px;
       cursor: pointer;
       color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     #character-options button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    #character-options img {
-      display: block;
-      margin: 0 auto 5px;
-      width: 50px;
-      height: 50px;
+    .character-square {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 5px;
     }
     /* Кнопка старта игры */
     #gm-start {
@@ -88,7 +91,7 @@
       cursor: pointer;
       text-decoration: underline;
     }
-    /* Игрокский вид (viewport) – показывает только зону вокруг игрока */
+    /* Игрокский вид (viewport) – область вокруг игрока */
     #player-view {
       width: 80vw;
       height: 80vh;
@@ -122,7 +125,7 @@
     .door {
       border: 2px solid sienna;
     }
-    /* Финальная дверь – оформлена с коричневой оградкой, отображается только в зоне видимости */
+    /* Финальная дверь */
     .final {
       background: #0055aa;
       color: #fff;
@@ -131,6 +134,14 @@
       align-items: center;
       justify-content: center;
       font-size: 24px;
+    }
+    /* На игровом поле игрок представлен квадратом, заполняющим всю клетку, с индивидуальным цветом */
+    .player-square {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
     /* Кнопки управления */
     #controls {
@@ -184,25 +195,25 @@
     <h1>Выбор персонажей</h1>
     <div id="selection-info">Выбор персонажа для игрока 1</div>
     <div id="character-options">
-      <button id="btn-vahhaib" onclick="selectCharacter('Вахаиб', 6, 'https://i.imgur.com/nWpZOkZ.png')">
-        <img src="https://i.imgur.com/nWpZOkZ.png" alt="Вахаиб">
+      <button id="btn-vahhaib" onclick="selectCharacter('Вахаиб', 6)">
+        <div class="character-square" style="background-color: #1E90FF;"></div>
         Вахаиб (6 клеток)
       </button>
-      <button id="btn-gnilion" onclick="selectCharacter('Гнилион', 8, 'https://i.imgur.com/tZSfmRn.png')">
-        <img src="https://i.imgur.com/tZSfmRn.png" alt="Гнилион">
+      <button id="btn-gnilion" onclick="selectCharacter('Гнилион', 8)">
+        <div class="character-square" style="background-color: #32CD32;"></div>
         Гнилион (8 клеток)
       </button>
-      <button id="btn-zalupator" onclick="selectCharacter('Залупатор', 5, 'https://i.imgur.com/CSNKO2Q.png')">
-        <img src="https://i.imgur.com/CSNKO2Q.png" alt="Залупатор">
+      <button id="btn-zalupator" onclick="selectCharacter('Залупатор', 5)">
+        <div class="character-square" style="background-color: #FFD700;"></div>
         Залупатор (5 клеток)
       </button>
-      <button id="btn-ofilnek" onclick="selectCharacter('Офилнекр', 5, 'https://i.imgur.com/oJCnoYW.png')">
-        <img src="https://i.imgur.com/oJCnoYW.png" alt="Офилнекр">
+      <button id="btn-ofilnek" onclick="selectCharacter('Офилнекр', 5)">
+        <div class="character-square" style="background-color: #FF4500;"></div>
         Офилнекр (5 клеток)
       </button>
       <!-- Слот для ГМ -->
       <button id="btn-gm" onclick="selectGM()">
-        <img src="https://via.placeholder.com/50?text=GM" alt="ГМ">
+        <div class="character-square" style="background-color: #808080;"></div>
         Гейм Мастер
       </button>
     </div>
@@ -229,7 +240,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно для событий (взлом двери, выбивание игрока) -->
+  <!-- Модальное окно для событий (например, взлом двери) -->
   <div id="modal">
     <div id="modal-content"></div>
   </div>
@@ -250,17 +261,24 @@
       "Залупатор": "dante_smin",
       "Офилнекр": "5gvishka"
     };
+    // Цвета для персонажей
+    const characterColors = {
+      "Вахаиб": "#1E90FF",    // DodgerBlue
+      "Гнилион": "#32CD32",   // LimeGreen
+      "Залупатор": "#FFD700", // Gold
+      "Офилнекр": "#FF4500"   // OrangeRed
+    };
 
     selectionInfoDiv.innerText = "Выбор персонажа для игрока 1";
 
-    function selectCharacter(name, moveRange, icon) {
+    function selectCharacter(name, moveRange) {
       if (selectionStage < totalPlayerSlots) {
         const pwd = prompt(`Введите пароль для ${name}:`);
         if (pwd !== characterPasswords[name]) {
           alert("Неверный пароль!");
           return;
         }
-        players.push({ name, moveRange, movesLeft: moveRange, icon, x: 0, y: 0, doorHacked: false });
+        players.push({ name, moveRange, movesLeft: moveRange, color: characterColors[name], x: 0, y: 0, doorHacked: false });
         switch(name) {
           case "Вахаиб": document.getElementById("btn-vahhaib").disabled = true; break;
           case "Гнилион": document.getElementById("btn-gnilion").disabled = true; break;
@@ -283,7 +301,7 @@
         return;
       }
       if (!gmPlayer) {
-        gmPlayer = { name: "ГМ", icon: "https://via.placeholder.com/50?text=GM" };
+        gmPlayer = { name: "ГМ", color: "#808080" };
         selectionStage++;
         selectionInfoDiv.innerText = "ГМ выбран. Для старта нажмите 'Начать игру' и введите пароль 'Сэра'.";
         gmStartDiv.style.display = "block";
@@ -293,7 +311,7 @@
     /* ==== Параметры лабиринта и объектов ==== */
     const mazeWidth = 45;
     const mazeHeight = 45;
-    const cellSize = 400; // увеличенный масштаб (10 раз от 40px)
+    const cellSize = 400; // каждая клетка 400px x 400px
     const visibilityRange = 3;
 
     let maze = [];
@@ -369,7 +387,7 @@
 
     /* ==== Размещение дверей ==== */
     function placeDoors() {
-      let doorCount = Math.floor(Math.random() * 6) + 5;
+      let doorCount = Math.floor(Math.random() * 6) + 5; // от 5 до 10 дверей
       let placed = [];
       let attempts = 0;
       while (placed.length < doorCount && attempts < 1000) {
@@ -407,25 +425,20 @@
           if (cell.walls.right) cellDiv.classList.add("wall-right");
           if (cell.walls.bottom) cellDiv.classList.add("wall-bottom");
           if (cell.walls.left) cellDiv.classList.add("wall-left");
-          // Финальная дверь: не отображается, если вне зоны видимости
+          // Финальная дверь
           if (x === mazeWidth - 1 && y === mazeHeight - 1) {
             cellDiv.classList.add("final");
             cellDiv.innerText = "Дверь";
           } else if (cell.door) {
             cellDiv.classList.add("door");
           }
-          // Игрокские иконки
+          // Отображение игрока – квадрат, заполняющий всю клетку, с заданным цветом
           players.forEach(p => {
             if (p.x === x && p.y === y) {
-              const img = document.createElement("img");
-              img.src = p.icon;
-              img.alt = p.name;
-              img.style.width = "32px";
-              img.style.height = "32px";
-              img.style.position = "absolute";
-              img.style.left = "4px";
-              img.style.top = "4px";
-              cellDiv.appendChild(img);
+              const square = document.createElement("div");
+              square.classList.add("player-square");
+              square.style.backgroundColor = p.color;
+              cellDiv.appendChild(square);
             }
           });
           if (Math.max(Math.abs(x - activePlayer.x), Math.abs(y - activePlayer.y)) > visibilityRange) {
@@ -472,6 +485,11 @@
       });
     }
 
+    function renderAllViews() {
+      renderPlayerMaze();
+      updatePlayersList();
+    }
+
     function gmKickPlayer(playerIndex) {
       let pwd = prompt("Введите пароль для выбивания игрока:");
       if (pwd === "Сэра") {
@@ -492,7 +510,15 @@
       }
     }
 
-    /* ==== Перемещение игрока ==== */
+    document.addEventListener("keydown", function(e) {
+      switch(e.key) {
+        case "ArrowUp": movePlayer("up"); break;
+        case "ArrowDown": movePlayer("down"); break;
+        case "ArrowLeft": movePlayer("left"); break;
+        case "ArrowRight": movePlayer("right"); break;
+      }
+    });
+
     function movePlayer(direction) {
       const activePlayer = players[currentPlayerIndex];
       let origX = activePlayer.x, origY = activePlayer.y;
@@ -504,12 +530,11 @@
       else if (direction === "right" && !currentCell.walls.right) newX++;
       if (newX < 0 || newX >= mazeWidth || newY < 0 || newY >= mazeHeight) return;
       const targetCell = maze[newY][newX];
-      // Если целевая клетка — дверь и дверь не взломана, запускаем мини-игру
-      if ((targetCell.door || (newX === mazeWidth - 1 && newY === mazeHeight - 1)) && !targetCell.hacked && !activePlayer.doorHacked) {
+      if ((targetCell.door || (newX === mazeWidth - 1 && newY === mazeHeight - 1))
+          && !targetCell.hacked && !activePlayer.doorHacked) {
         triggerDoorHack(targetCell, origX, origY);
         return;
       }
-      // Если не дверь, просто перемещаем игрока
       activePlayer.x = newX;
       activePlayer.y = newY;
       activePlayer.movesLeft--;
@@ -521,16 +546,18 @@
       updateTurnInfo();
     }
 
-    document.addEventListener("keydown", function(e) {
-      switch(e.key) {
-        case "ArrowUp": movePlayer("up"); break;
-        case "ArrowDown": movePlayer("down"); break;
-        case "ArrowLeft": movePlayer("left"); break;
-        case "ArrowRight": movePlayer("right"); break;
-      }
-    });
+    function showModal(content) {
+      document.getElementById("modal-content").innerHTML = content;
+      document.getElementById("modal").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+      renderAllViews();
+    }
+    function restartGame() {
+      location.reload();
+    }
 
-    /* ==== Мини-игра взлома двери ==== */
     function triggerDoorHack(targetCell, origX, origY) {
       let html = `<h2>Взлом двери</h2>
                   <p>Нажмите на круг, когда вращающаяся стрелка окажется в пределах метки!</p>
@@ -554,13 +581,11 @@
       let animationId;
       function drawLock() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // Рисуем круг замка (белый)
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 4;
         ctx.stroke();
-        // Фиксированная метка (оранжевая)
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         const markerX = centerX + radius * Math.cos(markerAngle);
@@ -569,7 +594,6 @@
         ctx.strokeStyle = "orange";
         ctx.lineWidth = 3;
         ctx.stroke();
-        // Вращающаяся стрелка (зеленая)
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         const dialX = centerX + radius * Math.cos(dialAngle);
@@ -600,7 +624,6 @@
             activePlayer.doorHacked = true;
           else
             targetCell.hacked = true;
-          // Перемещаем игрока на целевую клетку и отнимаем 1 ход
           activePlayer.x = targetCell.x;
           activePlayer.y = targetCell.y;
           activePlayer.movesLeft--;
@@ -611,49 +634,11 @@
           }, 1000);
         } else {
           statusEl.innerText = "Неудача! Дверь остается закрытой.";
-          // При неудаче игрок остается на исходной клетке (без изменения movesLeft)
           setTimeout(() => {
             closeModal();
           }, 1000);
         }
       }
-    }
-
-    /* ==== Модальное окно ==== */
-    function showModal(content) {
-      document.getElementById("modal-content").innerHTML = content;
-      document.getElementById("modal").style.display = "flex";
-    }
-    function closeModal() {
-      document.getElementById("modal").style.display = "none";
-      renderAllViews();
-    }
-    function restartGame() {
-      location.reload();
-    }
-
-    /* ==== Запуск игры ==== */
-    function startGame() {
-      let pwd = prompt("Введите пароль для запуска игры:");
-      if (pwd !== "Сэра") {
-        alert("Неверный пароль. Игра не запущена.");
-        return;
-      }
-      document.getElementById("character-selection").style.display = "none";
-      document.getElementById("game-screen").style.display = "flex";
-      players.forEach(p => { p.x = 0; p.y = 0; p.doorHacked = false; });
-      currentPlayerIndex = 0;
-      updateTurnInfo();
-      initMaze();
-    }
-
-    /* ==== Центрирование камеры ==== */
-    function centerCamera() {
-      const activePlayer = players[currentPlayerIndex];
-      const centerX = activePlayer.x * cellSize + cellSize / 2;
-      const centerY = activePlayer.y * cellSize + cellSize / 2;
-      playerView.scrollLeft = centerX - playerView.clientWidth / 2;
-      playerView.scrollTop = centerY - playerView.clientHeight / 2;
     }
 
     function updateTurnInfo() {
@@ -719,7 +704,8 @@
       else if (direction === "right" && !currentCell.walls.right) newX++;
       if (newX < 0 || newX >= mazeWidth || newY < 0 || newY >= mazeHeight) return;
       const targetCell = maze[newY][newX];
-      if ((targetCell.door || (newX === mazeWidth - 1 && newY === mazeHeight - 1)) && !targetCell.hacked && !activePlayer.doorHacked) {
+      if ((targetCell.door || (newX === mazeWidth - 1 && newY === mazeHeight - 1))
+          && !targetCell.hacked && !activePlayer.doorHacked) {
         triggerDoorHack(targetCell, origX, origY);
         return;
       }
