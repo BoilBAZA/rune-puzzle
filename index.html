@@ -12,7 +12,7 @@
       margin: 0;
       overflow: hidden;
       font-family: sans-serif;
-      background: #222;
+      background: #000;
       color: #eee;
     }
     h1, h2, h3 {
@@ -34,6 +34,7 @@
       padding: 10px;
       border-radius: 5px;
       cursor: pointer;
+      color: #eee;
     }
     #character-options button:disabled {
       opacity: 0.5;
@@ -45,7 +46,7 @@
       width: 50px;
       height: 50px;
     }
-    /* Контейнер для кнопки старта игры (виден после выбора ГМ) */
+    /* Кнопка старта игры (видна после выбора ГМ) */
     #gm-start {
       margin-top: 20px;
       display: none;
@@ -54,6 +55,10 @@
       padding: 10px 20px;
       font-size: 18px;
       cursor: pointer;
+      background: #444;
+      color: #eee;
+      border: none;
+      border-radius: 5px;
     }
     /* Экран игры */
     #game-screen {
@@ -62,19 +67,34 @@
       display: flex;
       flex-direction: column;
     }
+    /* Панель с информацией об игроках и ходе */
     #game-info {
-      text-align: center;
       padding: 5px;
       font-size: 18px;
       background: #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    /* Игрокский вид – окно камеры, занимающее всё пространство */
+    #turnInfo {
+      flex: 1;
+    }
+    #playersList {
+      flex: 1;
+      text-align: right;
+    }
+    #playersList span {
+      margin-left: 10px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    /* Игрокский вид – окно камеры на весь оставшийся экран */
     #player-view {
       flex: 1;
       position: relative;
       overflow: auto;
     }
-    /* Контейнер лабиринта внутри игрокского вида */
+    /* Контейнер лабиринта */
     #maze-container {
       position: relative;
       display: grid;
@@ -85,21 +105,21 @@
       box-sizing: border-box;
       position: relative;
     }
-    /* Стены клеток */
-    .wall-top    { border-top: 2px solid #eee; }
-    .wall-right  { border-right: 2px solid #eee; }
-    .wall-bottom { border-bottom: 2px solid #eee; }
-    .wall-left   { border-left: 2px solid #eee; }
-    /* Туман войны – затемняет клетки, находящиеся дальше, чем в радиусе видимости */
+    /* Стены – белые линии */
+    .wall-top    { border-top: 2px solid #fff; }
+    .wall-right  { border-right: 2px solid #fff; }
+    .wall-bottom { border-bottom: 2px solid #fff; }
+    .wall-left   { border-left: 2px solid #fff; }
+    /* Туман войны – затемнение клеток вне видимости */
     .fog {
       background: #000;
       border-color: #000;
     }
-    /* Визуальное оформление двери: коричневая рамка */
+    /* Двери – коричневые рамки */
     .door {
       border: 2px solid sienna;
     }
-    /* Финальная дверь (выход) оформлена отдельно */
+    /* Финальная дверь – также с коричневой оградкой */
     .final {
       background: #0055aa;
       color: #fff;
@@ -109,28 +129,16 @@
       justify-content: center;
       font-size: 10px;
     }
-    /* Визуальное отображение врагов */
+    /* Враги – красные кружки */
     .enemy {
       position: absolute;
       width: 16px;
       height: 16px;
-      background: purple;
+      background: red;
       border-radius: 50%;
       left: 2px;
       top: 2px;
       z-index: 3;
-    }
-    /* Точка боя (если появляется дополнительно) */
-    .battle-marker {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      background: red;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
     }
     /* Кнопки управления */
     #controls {
@@ -143,8 +151,12 @@
       margin: 2px;
       font-size: 16px;
       cursor: pointer;
+      background: #444;
+      border: none;
+      border-radius: 3px;
+      color: #eee;
     }
-    /* Модальное окно для событий */
+    /* Модальное окно для событий (бой, взлом двери, ГМ-выбивание игрока) */
     #modal {
       display: none;
       position: fixed;
@@ -162,12 +174,15 @@
       max-width: 400px;
       text-align: center;
       border-radius: 5px;
+      color: #eee;
     }
     /* Мини-игра взлома двери: canvas */
     canvas {
       background: #222;
       border: 2px solid #eee;
       border-radius: 50%;
+      display: block;
+      margin: 10px auto;
     }
   </style>
 </head>
@@ -199,18 +214,18 @@
         Гейм Мастер
       </button>
     </div>
-    <!-- Кнопка старта игры появляется после выбора ГМ -->
     <div id="gm-start">
       <button onclick="startGame()">Начать игру</button>
     </div>
   </div>
 
-  <!-- Экран игры -->
+  <!-- Игровой экран -->
   <div id="game-screen" class="screen" style="display: none;">
     <div id="game-info">
-      <span id="turnInfo"></span>
+      <div id="turnInfo"></div>
+      <div id="playersList"></div>
     </div>
-    <!-- Игрокский вид: окно камеры на весь экран -->
+    <!-- Игрокский вид: viewport занимает весь оставшийся экран -->
     <div id="player-view">
       <div id="maze-container"></div>
     </div>
@@ -222,7 +237,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно для событий (бой, взлом двери) -->
+  <!-- Модальное окно для событий (бой, взлом двери, выбивание игрока) -->
   <div id="modal">
     <div id="modal-content"></div>
   </div>
@@ -230,19 +245,18 @@
   <script>
     /* ==== Выбор персонажей и ГМ ==== */
     const totalPlayerSlots = 4;
-    let players = []; // игроки
-    let gmPlayer = null; // ГМ
+    let players = []; // массив игроков
+    let gmPlayer = null; // объект ГМ
     let selectionStage = 0; // 0-3 для игроков, затем ГМ
     const selectionInfoDiv = document.getElementById("selection-info");
-    const characterSelectionDiv = document.getElementById("character-selection");
     const gmStartDiv = document.getElementById("gm-start");
-    
+
     selectionInfoDiv.innerText = "Выбор персонажа для игрока 1";
-    
+
     function selectCharacter(name, moveRange, icon) {
       if (selectionStage < totalPlayerSlots) {
-        players.push({ name: name, moveRange: moveRange, movesLeft: moveRange, icon: icon, x: 0, y: 0, doorHacked: false });
-        // Отключаем кнопку выбранного персонажа
+        players.push({ name, moveRange, movesLeft: moveRange, icon, x: 0, y: 0, doorHacked: false });
+        // Блокируем выбранного персонажа
         switch(name) {
           case "Вахаиб": document.getElementById("btn-vahhaib").disabled = true; break;
           case "Гнилион": document.getElementById("btn-gnilion").disabled = true; break;
@@ -257,7 +271,7 @@
         }
       }
     }
-    
+
     function selectGM() {
       let pwd = prompt("Введите пароль для ГМ:");
       if (pwd !== "Сэра") {
@@ -271,16 +285,16 @@
         gmStartDiv.style.display = "block";
       }
     }
-    
+
     /* ==== Параметры лабиринта ==== */
     const mazeWidth = 45;
     const mazeHeight = 45;
-    const cellSize = 20; // размер ячейки в пикселях
-    const visibilityRange = 3; // игрок видит клетки в радиусе 3 от своей позиции
-    
+    const cellSize = 20; // в пикселях
+    const visibilityRange = 3; // игрок видит клетки в радиусе 3
+
     let maze = [];
     let enemies = [];
-    
+
     /* ==== Генерация лабиринта (backtracking) ==== */
     function initMaze() {
       generateMaze();
@@ -288,18 +302,18 @@
       placeEnemies();
       renderAllViews();
     }
-    
+
     function generateMaze() {
       for (let y = 0; y < mazeHeight; y++) {
         maze[y] = [];
         for (let x = 0; x < mazeWidth; x++) {
           maze[y][x] = {
-            x: x, y: y,
+            x, y,
             walls: { top: true, right: true, bottom: true, left: true },
             visited: false,
             battle: false,
-            door: false,  // промежуточные двери
-            hacked: false // взломана ли дверь
+            door: false,
+            hacked: false
           };
         }
       }
@@ -320,7 +334,7 @@
           break;
         }
       }
-      // Размещаем точки боя с вероятностью 10% (исключая старт и финал)
+      // Размещение "точек боя" (отметка battle не используется напрямую для врагов)
       for (let y = 0; y < mazeHeight; y++) {
         for (let x = 0; x < mazeWidth; x++) {
           if ((x !== 0 || y !== 0) && (x !== mazeWidth - 1 || y !== mazeHeight - 1)) {
@@ -331,7 +345,7 @@
         }
       }
     }
-    
+
     function getUnvisitedNeighbors(cell) {
       let neighbors = [];
       let { x, y } = cell;
@@ -341,7 +355,7 @@
       if (x > 0 && !maze[y][x-1].visited) neighbors.push(maze[y][x-1]);
       return neighbors;
     }
-    
+
     function removeWalls(current, next) {
       let xDiff = current.x - next.x;
       let yDiff = current.y - next.y;
@@ -360,20 +374,17 @@
         next.walls.top = false;
       }
     }
-    
+
     /* ==== Размещение дверей ==== */
     function placeDoors() {
-      // Определяем число дверей от 5 до 10
-      let doorCount = Math.floor(Math.random() * 6) + 5;
+      let doorCount = Math.floor(Math.random() * 6) + 5; // от 5 до 10
       let placed = [];
       let attempts = 0;
       while (placed.length < doorCount && attempts < 1000) {
         attempts++;
         let dx = Math.floor(Math.random() * mazeWidth);
         let dy = Math.floor(Math.random() * mazeHeight);
-        // Не ставим дверь на старт (0,0) или финал (mazeWidth-1, mazeHeight-1)
         if ((dx === 0 && dy === 0) || (dx === mazeWidth - 1 && dy === mazeHeight - 1)) continue;
-        // Проверяем, что расстояние до всех уже поставленных дверей не меньше 7 клеток (Manhattan)
         let valid = true;
         for (let d of placed) {
           if (Math.abs(d.x - dx) + Math.abs(d.y - dy) < 7) {
@@ -386,28 +397,28 @@
         placed.push({x: dx, y: dy});
       }
     }
-    
+
     /* ==== Размещение врагов ==== */
     function placeEnemies() {
       enemies = [];
       while (enemies.length < 3) {
         let ex = Math.floor(Math.random() * mazeWidth);
         let ey = Math.floor(Math.random() * mazeHeight);
-        // Не ставим врагов на старт или финал или в дверь
+        // Враги не появятся на стартовой клетке, финале, дверях или если слишком близко к (0,0)
         if ((ex === 0 && ey === 0) || (ex === mazeWidth - 1 && ey === mazeHeight - 1) || maze[ey][ex].door) continue;
-        // Избегаем повторов
+        if (Math.abs(ex - 0) + Math.abs(ey - 0) < 10) continue;
         if (enemies.some(e => e.x === ex && e.y === ey)) continue;
         enemies.push({ x: ex, y: ey });
       }
     }
-    
-    /* ==== Отрисовка лабиринта ==== */
-    const playerMazeContainer = document.getElementById("maze-container");
+
+    /* ==== Отрисовка лабиринта (игрокский вид) ==== */
+    const mazeContainer = document.getElementById("maze-container");
     const playerView = document.getElementById("player-view");
-    
+
     function renderPlayerMaze() {
-      playerMazeContainer.innerHTML = "";
-      playerMazeContainer.style.gridTemplateColumns = `repeat(${mazeWidth}, ${cellSize}px)`;
+      mazeContainer.innerHTML = "";
+      mazeContainer.style.gridTemplateColumns = `repeat(${mazeWidth}, ${cellSize}px)`;
       const activePlayer = players[currentPlayerIndex];
       for (let y = 0; y < mazeHeight; y++) {
         for (let x = 0; x < mazeWidth; x++) {
@@ -418,22 +429,17 @@
           if (cell.walls.right) cellDiv.classList.add("wall-right");
           if (cell.walls.bottom) cellDiv.classList.add("wall-bottom");
           if (cell.walls.left) cellDiv.classList.add("wall-left");
-          // Если это финальная ячейка – оформляем как выход (без door)
           if (x === mazeWidth - 1 && y === mazeHeight - 1) {
             cellDiv.classList.add("final");
             cellDiv.innerText = "Дверь";
-          }
-          // Если в клетке стоит дверь (не финальная) – добавляем класс door
-          else if (cell.door) {
+          } else if (cell.door) {
             cellDiv.classList.add("door");
           }
-          // Если есть точка боя (но враги отрисовываются отдельно)
+          // Если на клетке установлена отметка battle – (эта отметка для вспомогательной логики)
           if (cell.battle) {
-            const battleMarker = document.createElement("div");
-            battleMarker.classList.add("battle-marker");
-            cellDiv.appendChild(battleMarker);
+            // Можно добавить (но визуально удаляем красные точки)
           }
-          // Отображаем иконки игроков, если они находятся в этой клетке
+          // Отображаем иконки игроков
           players.forEach(p => {
             if (p.x === x && p.y === y) {
               const img = document.createElement("img");
@@ -447,29 +453,31 @@
               cellDiv.appendChild(img);
             }
           });
-          // Отображаем врагов, если они находятся в этой клетке
-          enemies.forEach(enemy => {
-            if (enemy.x === x && enemy.y === y) {
-              const enemyDiv = document.createElement("div");
-              enemyDiv.classList.add("enemy");
-              cellDiv.appendChild(enemyDiv);
-            }
-          });
-          // Накладываем туман, если клетка дальше, чем visibilityRange от активного игрока
+          // Отображаем врагов, только если активный игрок находится в радиусе видимости
+          if (Math.max(Math.abs(x - activePlayer.x), Math.abs(y - activePlayer.y)) <= visibilityRange) {
+            enemies.forEach(enemy => {
+              if (enemy.x === x && enemy.y === y) {
+                const enemyDiv = document.createElement("div");
+                enemyDiv.classList.add("enemy");
+                cellDiv.appendChild(enemyDiv);
+              }
+            });
+          }
           if (Math.max(Math.abs(x - activePlayer.x), Math.abs(y - activePlayer.y)) > visibilityRange) {
             cellDiv.classList.add("fog");
           }
           cellDiv.id = `cell-${x}-${y}`;
-          playerMazeContainer.appendChild(cellDiv);
+          mazeContainer.appendChild(cellDiv);
         }
       }
       centerCamera();
     }
-    
+
     function renderAllViews() {
       renderPlayerMaze();
+      updatePlayersList();
     }
-    
+
     /* ==== Центрирование камеры вокруг активного игрока ==== */
     function centerCamera() {
       const activePlayer = players[currentPlayerIndex];
@@ -478,12 +486,48 @@
       playerView.scrollLeft = centerX - playerView.clientWidth / 2;
       playerView.scrollTop = centerY - playerView.clientHeight / 2;
     }
-    
+
     /* ==== Управление ходом ==== */
-    let currentPlayerIndex = 0; // ГМ не участвует в ходах
+    let currentPlayerIndex = 0;
     function updateTurnInfo() {
       const activePlayer = players[currentPlayerIndex];
       document.getElementById("turnInfo").innerText = `Ход: ${activePlayer.name} (Осталось ходов: ${activePlayer.movesLeft})`;
+    }
+    
+    /* ==== Список игроков для ГМ (клик по имени выбивает игрока) ==== */
+    function updatePlayersList() {
+      const listDiv = document.getElementById("playersList");
+      listDiv.innerHTML = "Игроки:";
+      players.forEach((p, index) => {
+        let span = document.createElement("span");
+        span.innerText = p.name;
+        // Если ГМ существует, им можно выбрать игрока для выбивания
+        if (gmPlayer) {
+          span.onclick = function() { gmKickPlayer(index); };
+        }
+        listDiv.appendChild(span);
+      });
+    }
+    
+    function gmKickPlayer(playerIndex) {
+      let pwd = prompt("Введите пароль для выбивания игрока:");
+      if (pwd === "Сэра") {
+        alert(`Игрок ${players[playerIndex].name} выбит из игры.`);
+        players.splice(playerIndex, 1);
+        if (players.length === 0) {
+          alert("Все игроки выбиты. Игра окончена.");
+          restartGame();
+          return;
+        }
+        // Если выбит активный игрок, переключаем ход
+        if (playerIndex === currentPlayerIndex) {
+          currentPlayerIndex %= players.length;
+        }
+        updateTurnInfo();
+        renderAllViews();
+      } else {
+        alert("Неверный пароль.");
+      }
     }
     
     function movePlayer(direction) {
@@ -512,7 +556,6 @@
       }
     }
     
-    // Управление стрелками клавиатуры
     document.addEventListener("keydown", function(e) {
       switch(e.key) {
         case "ArrowUp": movePlayer("up"); break;
@@ -525,37 +568,18 @@
     function checkCurrentCell() {
       const activePlayer = players[currentPlayerIndex];
       const cell = maze[activePlayer.y][activePlayer.x];
-      // Если в клетке стоит враг (battle отмечено через врагов) – событие боя запустится при столкновении в renderAllViews
-      // Если игрок на клетке с дверью (и дверь еще не взломана), запускаем мини-игру взлома
-      if (cell.door && !cell.hacked) {
+      // Если клетка содержит дверь (промежуточную или финальную)
+      if ((cell.door || (activePlayer.x === mazeWidth - 1 && activePlayer.y === mazeHeight - 1)) && !cell.hacked && !activePlayer.doorHacked) {
         triggerDoorHack(cell);
         return;
       }
-      // Если игрок попадает в финальную клетку – запускается мини-игра (финальный замок)
-      if (activePlayer.x === mazeWidth - 1 && activePlayer.y === mazeHeight - 1) {
-        if (!activePlayer.doorHacked) {
-          triggerDoorHack(cell);
-          return;
-        }
-      }
+      // Если клетка содержит битву (battle) – можем запускать событие боя (если враг и игрок оказались вместе, но это также обрабатывается при перемещении врагов)
     }
     
-    /* ==== Враги ==== */
-    function placeEnemies() {
-      enemies = [];
-      while (enemies.length < 3) {
-        let ex = Math.floor(Math.random() * mazeWidth);
-        let ey = Math.floor(Math.random() * mazeHeight);
-        // Избегаем старт (0,0), финал и двери
-        if ((ex === 0 && ey === 0) || (ex === mazeWidth - 1 && ey === mazeHeight - 1) || maze[ey][ex].door) continue;
-        if (enemies.some(e => e.x === ex && e.y === ey)) continue;
-        enemies.push({ x: ex, y: ey });
-      }
-    }
-    
+    /* ==== Движение врагов ==== */
     function moveEnemies() {
       const activePlayer = players[currentPlayerIndex];
-      enemies.forEach(enemy => {
+      enemies.forEach((enemy, i) => {
         let steps = 5;
         while (steps > 0) {
           if (enemy.x < activePlayer.x) enemy.x++;
@@ -564,38 +588,31 @@
           else if (enemy.y > activePlayer.y) enemy.y--;
           steps--;
         }
-      });
-      // Если враг попадает на ту же клетку, запускаем бой
-      enemies.forEach(enemy => {
+        // Если враг оказывается на клетке активного игрока – запускаем бой
         if (enemy.x === activePlayer.x && enemy.y === activePlayer.y) {
-          triggerEnemyBattle(activePlayer);
+          triggerEnemyBattle(activePlayer, i);
         }
       });
     }
     
-    function triggerEnemyBattle(activePlayer) {
-      showModal(`<h2>Бой с врагом!</h2>
+    function triggerEnemyBattle(activePlayer, enemyIndex) {
+      showModal(`<h2>Бой!</h2>
                  <p>Враг напал на ${activePlayer.name}!</p>
-                 <button onclick="closeModal()">Продолжить</button>`);
+                 <button onclick="resumeAfterBattle(${enemyIndex})">Продолжить (ГМ вводит пароль)</button>`);
     }
     
-    /* ==== Модальное окно ==== */
-    function showModal(content) {
-      document.getElementById("modal-content").innerHTML = content;
-      document.getElementById("modal").style.display = "flex";
-    }
-    function closeModal() {
-      document.getElementById("modal").style.display = "none";
-      renderAllViews();
-    }
-    function restartGame() {
-      location.reload();
+    function resumeAfterBattle(enemyIndex) {
+      let pwd = prompt("Введите пароль для продолжения боя:");
+      if (pwd === "Сэра") {
+        // Удаляем врага, который атаковал
+        enemies.splice(enemyIndex, 1);
+        closeModal();
+      } else {
+        alert("Неверный пароль.");
+      }
     }
     
     /* ==== Мини-игра взлома двери ==== */
-    // Если игрок кликает по клетке с дверью, запускается эта мини-игра.
-    // При успехе дверь считается взломанной (cell.hacked = true; или, если финальная, activePlayer.doorHacked = true).
-    // При неудаче игрок теряет оставшиеся ходы (его ход завершается).
     function triggerDoorHack(cell) {
       let html = `<h2>Взлом двери</h2>
                   <p>Нажмите на круг, когда вращающаяся стрелка окажется в пределах метки!</p>
@@ -617,31 +634,30 @@
       const markerAngle = Math.random() * 2 * Math.PI;
       
       let animationId;
-      
       function drawLock() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // Рисуем круг замка
+        // Рисуем круг замка (белый)
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.strokeStyle = "#eee";
+        ctx.strokeStyle = "#fff";
         ctx.lineWidth = 4;
         ctx.stroke();
-        // Рисуем фиксированную метку
+        // Фиксированная метка (оранжевая)
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         const markerX = centerX + radius * Math.cos(markerAngle);
         const markerY = centerY + radius * Math.sin(markerAngle);
         ctx.lineTo(markerX, markerY);
-        ctx.strokeStyle = "#ff6600";
+        ctx.strokeStyle = "orange";
         ctx.lineWidth = 3;
         ctx.stroke();
-        // Рисуем вращающуюся стрелку
+        // Вращающаяся стрелка (диал, зеленая)
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         const dialX = centerX + radius * Math.cos(dialAngle);
         const dialY = centerY + radius * Math.sin(dialAngle);
         ctx.lineTo(dialX, dialY);
-        ctx.strokeStyle = "#0f0";
+        ctx.strokeStyle = "lime";
         ctx.lineWidth = 3;
         ctx.stroke();
       }
@@ -651,11 +667,9 @@
         drawLock();
         animationId = requestAnimationFrame(animate);
       }
-      
       animate();
       
       canvas.addEventListener("click", onCanvasClick);
-      
       function onCanvasClick() {
         cancelAnimationFrame(animationId);
         let diff = Math.abs(dialAngle % (2 * Math.PI) - markerAngle);
@@ -664,7 +678,6 @@
         const activePlayer = players[currentPlayerIndex];
         if (diff < tolerance) {
           statusEl.innerText = "Успех! Дверь вскрыта.";
-          // Если финальная дверь, отмечаем для игрока; иначе помечаем ячейку как взломанную
           if (activePlayer.x === mazeWidth - 1 && activePlayer.y === mazeHeight - 1)
             activePlayer.doorHacked = true;
           else
@@ -674,7 +687,6 @@
           }, 1000);
         } else {
           statusEl.innerText = "Неудача! Вы теряете ход.";
-          // При неудаче игрок теряет оставшиеся ходы
           activePlayer.movesLeft = 0;
           setTimeout(() => {
             closeModal();
@@ -683,41 +695,31 @@
       }
     }
     
+    /* ==== Модальное окно ==== */
+    function showModal(content) {
+      document.getElementById("modal-content").innerHTML = content;
+      document.getElementById("modal").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+      renderAllViews();
+    }
+    function restartGame() {
+      location.reload();
+    }
+    
     /* ==== Запуск игры ==== */
-    // Все игроки появляются из стартовой ячейки (0,0)
+    // Все игроки стартуют из (0,0)
     function startGame() {
-      characterSelectionDiv.style.display = "none";
+      document.getElementById("character-selection").style.display = "none";
       document.getElementById("game-screen").style.display = "flex";
-      // Все игроки стартуют с (0,0)
       players.forEach(p => { p.x = 0; p.y = 0; p.doorHacked = false; });
       currentPlayerIndex = 0;
       updateTurnInfo();
       initMaze();
     }
     
-    /* ==== Враги отрисовываются вместе с лабиринтом ==== */
-    function renderEnemyOnCell(cellDiv, x, y) {
-      enemies.forEach(enemy => {
-        if (enemy.x === x && enemy.y === y) {
-          const enemyDiv = document.createElement("div");
-          enemyDiv.classList.add("enemy");
-          cellDiv.appendChild(enemyDiv);
-        }
-      });
-    }
-    
-    /* ==== Обновление информации о ходе ==== */
-    function updateTurnInfo() {
-      const activePlayer = players[currentPlayerIndex];
-      document.getElementById("turnInfo").innerText = `Ход: ${activePlayer.name} (Осталось ходов: ${activePlayer.movesLeft})`;
-    }
-    
-    /* ==== Рендеринг всего игрового поля ==== */
-    function renderAllViews() {
-      renderPlayerMaze();
-    }
-    
-    /* ==== Центрирование камеры вокруг активного игрока ==== */
+    /* ==== Центрирование камеры и обновление списка игроков ==== */
     function centerCamera() {
       const activePlayer = players[currentPlayerIndex];
       const centerX = activePlayer.x * cellSize + cellSize / 2;
@@ -725,66 +727,42 @@
       playerView.scrollLeft = centerX - playerView.clientWidth / 2;
       playerView.scrollTop = centerY - playerView.clientHeight / 2;
     }
-    
-    /* ==== Отрисовка лабиринта (игрокский вид) ==== */
-    function renderPlayerMaze() {
-      playerMazeContainer.innerHTML = "";
-      playerMazeContainer.style.gridTemplateColumns = `repeat(${mazeWidth}, ${cellSize}px)`;
+    function updateTurnInfo() {
       const activePlayer = players[currentPlayerIndex];
-      for (let y = 0; y < mazeHeight; y++) {
-        for (let x = 0; x < mazeWidth; x++) {
-          const cell = maze[y][x];
-          const cellDiv = document.createElement("div");
-          cellDiv.classList.add("cell");
-          if (cell.walls.top) cellDiv.classList.add("wall-top");
-          if (cell.walls.right) cellDiv.classList.add("wall-right");
-          if (cell.walls.bottom) cellDiv.classList.add("wall-bottom");
-          if (cell.walls.left) cellDiv.classList.add("wall-left");
-          // Финальная дверь
-          if (x === mazeWidth - 1 && y === mazeHeight - 1) {
-            cellDiv.classList.add("final");
-            cellDiv.innerText = "Дверь";
-          }
-          // Промежуточные двери
-          else if (cell.door) {
-            cellDiv.classList.add("door");
-          }
-          if (cell.battle) {
-            const battleMarker = document.createElement("div");
-            battleMarker.classList.add("battle-marker");
-            cellDiv.appendChild(battleMarker);
-          }
-          // Отображаем иконки игроков
-          players.forEach(p => {
-            if (p.x === x && p.y === y) {
-              const img = document.createElement("img");
-              img.src = p.icon;
-              img.alt = p.name;
-              img.style.width = "16px";
-              img.style.height = "16px";
-              img.style.position = "absolute";
-              img.style.left = "2px";
-              img.style.top = "2px";
-              cellDiv.appendChild(img);
-            }
-          });
-          // Отображаем врагов
-          renderEnemyOnCell(cellDiv, x, y);
-          // Накладываем туман, если клетка дальше, чем visibilityRange от активного игрока
-          if (Math.max(Math.abs(x - activePlayer.x), Math.abs(y - activePlayer.y)) > visibilityRange) {
-            cellDiv.classList.add("fog");
-          }
-          cellDiv.id = `cell-${x}-${y}`;
-          playerMazeContainer.appendChild(cellDiv);
+      document.getElementById("turnInfo").innerText = `Ход: ${activePlayer.name} (Осталось ходов: ${activePlayer.movesLeft})`;
+    }
+    function renderAllViews() {
+      renderPlayerMaze();
+      updatePlayersList();
+    }
+    function updatePlayersList() {
+      const listDiv = document.getElementById("playersList");
+      listDiv.innerHTML = "Игроки:";
+      players.forEach((p, i) => {
+        let span = document.createElement("span");
+        span.innerText = p.name;
+        // Если ГМ выбран, им можно выбивать игроков
+        if (gmPlayer) {
+          span.onclick = () => { gmKickPlayer(i); };
         }
-      }
-      centerCamera();
+        listDiv.appendChild(span);
+      });
     }
     
-    /* ==== Враги ==== */
+    /* ==== Управление стрелками клавиатуры ==== */
+    document.addEventListener("keydown", function(e) {
+      switch(e.key) {
+        case "ArrowUp": movePlayer("up"); break;
+        case "ArrowDown": movePlayer("down"); break;
+        case "ArrowLeft": movePlayer("left"); break;
+        case "ArrowRight": movePlayer("right"); break;
+      }
+    });
+    
+    /* ==== Движение врагов ==== */
     function moveEnemies() {
       const activePlayer = players[currentPlayerIndex];
-      enemies.forEach(enemy => {
+      enemies.forEach((enemy, i) => {
         let steps = 5;
         while (steps > 0) {
           if (enemy.x < activePlayer.x) enemy.x++;
@@ -793,29 +771,26 @@
           else if (enemy.y > activePlayer.y) enemy.y--;
           steps--;
         }
-      });
-      enemies.forEach(enemy => {
         if (enemy.x === activePlayer.x && enemy.y === activePlayer.y) {
-          triggerEnemyBattle(activePlayer);
+          triggerEnemyBattle(activePlayer, i);
         }
       });
     }
     
-    function triggerEnemyBattle(activePlayer) {
-      showModal(`<h2>Бой с врагом!</h2>
+    function triggerEnemyBattle(activePlayer, enemyIndex) {
+      showModal(`<h2>Бой!</h2>
                  <p>Враг напал на ${activePlayer.name}!</p>
-                 <button onclick="closeModal()">Продолжить</button>`);
+                 <button onclick="resumeAfterBattle(${enemyIndex})">Продолжить (введите пароль)</button>`);
     }
     
-    /* ==== Запуск игры ==== */
-    function startGame() {
-      characterSelectionDiv.style.display = "none";
-      document.getElementById("game-screen").style.display = "flex";
-      // Все игроки стартуют из (0,0)
-      players.forEach(p => { p.x = 0; p.y = 0; p.doorHacked = false; });
-      currentPlayerIndex = 0;
-      updateTurnInfo();
-      initMaze();
+    function resumeAfterBattle(enemyIndex) {
+      let pwd = prompt("Введите пароль для продолжения боя:");
+      if (pwd === "Сэра") {
+        enemies.splice(enemyIndex, 1);
+        closeModal();
+      } else {
+        alert("Неверный пароль.");
+      }
     }
   </script>
 </body>
