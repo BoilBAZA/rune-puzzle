@@ -263,17 +263,17 @@
     };
     // Цвета для персонажей
     const characterColors = {
-      "Вахаиб": "#1E90FF",    // DodgerBlue
-      "Гнилион": "#32CD32",   // LimeGreen
-      "Залупатор": "#FFD700", // Gold
-      "Офилнекр": "#FF4500"   // OrangeRed
+      "Вахаиб": "#1E90FF",
+      "Гнилион": "#32CD32",
+      "Залупатор": "#FFD700",
+      "Офилнекр": "#FF4500"
     };
 
     selectionInfoDiv.innerText = "Выбор персонажа для игрока 1";
 
     function selectCharacter(name, moveRange) {
       if (selectionStage < totalPlayerSlots) {
-        const pwd = prompt(`Введите пароль для ${name}:`);
+        const pwd = prompt("Введите пароль:");
         if (pwd !== characterPasswords[name]) {
           alert("Неверный пароль!");
           return;
@@ -295,15 +295,15 @@
     }
 
     function selectGM() {
-      const pwd = prompt("Введите пароль для ГМ:");
+      const pwd = prompt("Введите пароль:");
       if (pwd !== "Сэра") {
-        alert("Неверный пароль для ГМ.");
+        alert("Неверный пароль.");
         return;
       }
       if (!gmPlayer) {
         gmPlayer = { name: "ГМ", color: "#808080" };
         selectionStage++;
-        selectionInfoDiv.innerText = "ГМ выбран. Для старта нажмите 'Начать игру' и введите пароль 'Сэра'.";
+        selectionInfoDiv.innerText = "ГМ выбран. Для старта нажмите 'Начать игру'.";
         gmStartDiv.style.display = "block";
       }
     }
@@ -311,7 +311,7 @@
     /* ==== Параметры лабиринта и объектов ==== */
     const mazeWidth = 45;
     const mazeHeight = 45;
-    const cellSize = 400; // каждая клетка 400px x 400px
+    const cellSize = 400;
     const visibilityRange = 3;
 
     let maze = [];
@@ -387,7 +387,7 @@
 
     /* ==== Размещение дверей ==== */
     function placeDoors() {
-      let doorCount = Math.floor(Math.random() * 6) + 5; // от 5 до 10 дверей
+      let doorCount = Math.floor(Math.random() * 6) + 5;
       let placed = [];
       let attempts = 0;
       while (placed.length < doorCount && attempts < 1000) {
@@ -432,7 +432,7 @@
           } else if (cell.door) {
             cellDiv.classList.add("door");
           }
-          // Отображение игрока – квадрат, заполняющий всю клетку, с заданным цветом
+          // Отображение игрока – квадрат, заполняющий всю клетку, с индивидуальным цветом
           players.forEach(p => {
             if (p.x === x && p.y === y) {
               const square = document.createElement("div");
@@ -491,7 +491,7 @@
     }
 
     function gmKickPlayer(playerIndex) {
-      let pwd = prompt("Введите пароль для выбивания игрока:");
+      let pwd = prompt("Введите пароль:");
       if (pwd === "Сэра") {
         alert(`Игрок ${players[playerIndex].name} выбит из игры.`);
         players.splice(playerIndex, 1);
@@ -665,7 +665,355 @@
     }
 
     function gmKickPlayer(playerIndex) {
-      let pwd = prompt("Введите пароль для выбивания игрока:");
+      let pwd = prompt("Введите пароль:");
+      if (pwd === "Сэра") {
+        alert(`Игрок ${players[playerIndex].name} выбит из игры.`);
+        players.splice(playerIndex, 1);
+        if (players.length === 0) {
+          alert("Все игроки выбиты. Игра окончена.");
+          restartGame();
+          return;
+        }
+        if (playerIndex === currentPlayerIndex) {
+          currentPlayerIndex %= players.length;
+        }
+        updateTurnInfo();
+        renderAllViews();
+      } else {
+        alert("Неверный пароль.");
+      }
+    }
+
+    document.addEventListener("keydown", function(e) {
+      switch(e.key) {
+        case "ArrowUp": movePlayer("up"); break;
+        case "ArrowDown": movePlayer("down"); break;
+        case "ArrowLeft": movePlayer("left"); break;
+        case "ArrowRight": movePlayer("right"); break;
+      }
+    });
+
+    function movePlayer(direction) {
+      const activePlayer = players[currentPlayerIndex];
+      let origX = activePlayer.x, origY = activePlayer.y;
+      let newX = origX, newY = origY;
+      const currentCell = maze[origY][origX];
+      if (direction === "up" && !currentCell.walls.top) newY--;
+      else if (direction === "down" && !currentCell.walls.bottom) newY++;
+      else if (direction === "left" && !currentCell.walls.left) newX--;
+      else if (direction === "right" && !currentCell.walls.right) newX++;
+      if (newX < 0 || newX >= mazeWidth || newY < 0 || newY >= mazeHeight) return;
+      const targetCell = maze[newY][newX];
+      if ((targetCell.door || (newX === mazeWidth - 1 && newY === mazeHeight - 1))
+          && !targetCell.hacked && !activePlayer.doorHacked) {
+        triggerDoorHack(targetCell, origX, origY);
+        return;
+      }
+      activePlayer.x = newX;
+      activePlayer.y = newY;
+      activePlayer.movesLeft--;
+      renderAllViews();
+      if (activePlayer.movesLeft <= 0) {
+        activePlayer.movesLeft = activePlayer.moveRange;
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      }
+      updateTurnInfo();
+    }
+
+    function showModal(content) {
+      document.getElementById("modal-content").innerHTML = content;
+      document.getElementById("modal").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+      renderAllViews();
+    }
+    function restartGame() {
+      location.reload();
+    }
+
+    function triggerDoorHack(targetCell, origX, origY) {
+      let html = `<h2>Взлом двери</h2>
+                  <p>Нажмите на круг, когда стрелка окажется в пределах метки!</p>
+                  <canvas id="doorHackCanvas" width="300" height="300"></canvas>
+                  <p id="doorHackStatus"></p>`;
+      showModal(html);
+      startDoorHackMinigame(targetCell, origX, origY);
+    }
+
+    function startDoorHackMinigame(targetCell, origX, origY) {
+      const canvas = document.getElementById("doorHackCanvas");
+      const ctx = canvas.getContext("2d");
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = 120;
+      let dialAngle = 0;
+      const rotationSpeed = 0.05;
+      const tolerance = 0.2;
+      const markerAngle = Math.random() * 2 * Math.PI;
+      
+      let animationId;
+      function drawLock() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        const markerX = centerX + radius * Math.cos(markerAngle);
+        const markerY = centerY + radius * Math.sin(markerAngle);
+        ctx.lineTo(markerX, markerY);
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        const dialX = centerX + radius * Math.cos(dialAngle);
+        const dialY = centerY + radius * Math.sin(dialAngle);
+        ctx.lineTo(dialX, dialY);
+        ctx.strokeStyle = "lime";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      
+      function animate() {
+        dialAngle += rotationSpeed;
+        drawLock();
+        animationId = requestAnimationFrame(animate);
+      }
+      animate();
+      
+      canvas.addEventListener("click", onCanvasClick);
+      function onCanvasClick() {
+        cancelAnimationFrame(animationId);
+        let diff = Math.abs(dialAngle % (2 * Math.PI) - markerAngle);
+        if (diff > Math.PI) diff = 2 * Math.PI - diff;
+        const statusEl = document.getElementById("doorHackStatus");
+        const activePlayer = players[currentPlayerIndex];
+        if (diff < tolerance) {
+          statusEl.innerText = "Успех! Дверь вскрыта.";
+          if (activePlayer.x === mazeWidth - 1 && activePlayer.y === mazeHeight - 1)
+            activePlayer.doorHacked = true;
+          else
+            targetCell.hacked = true;
+          activePlayer.x = targetCell.x;
+          activePlayer.y = targetCell.y;
+          activePlayer.movesLeft--;
+          setTimeout(() => {
+            closeModal();
+            renderAllViews();
+            updateTurnInfo();
+          }, 1000);
+        } else {
+          statusEl.innerText = "Неудача! Дверь остается закрытой.";
+          setTimeout(() => {
+            closeModal();
+          }, 1000);
+        }
+      }
+    }
+
+    function updateTurnInfo() {
+      const activePlayer = players[currentPlayerIndex];
+      document.getElementById("turnInfo").innerText = `Ход: ${activePlayer.name} (Осталось ходов: ${activePlayer.movesLeft})`;
+    }
+
+    function updatePlayersList() {
+      const listDiv = document.getElementById("playersList");
+      listDiv.innerHTML = "Игроки:";
+      players.forEach((p, i) => {
+        let span = document.createElement("span");
+        span.innerText = p.name;
+        if (gmPlayer) {
+          span.onclick = () => { gmKickPlayer(i); };
+        }
+        listDiv.appendChild(span);
+      });
+    }
+
+    function renderAllViews() {
+      renderPlayerMaze();
+      updatePlayersList();
+    }
+
+    function gmKickPlayer(playerIndex) {
+      let pwd = prompt("Введите пароль:");
+      if (pwd === "Сэра") {
+        alert(`Игрок ${players[playerIndex].name} выбит из игры.`);
+        players.splice(playerIndex, 1);
+        if (players.length === 0) {
+          alert("Все игроки выбиты. Игра окончена.");
+          restartGame();
+          return;
+        }
+        if (playerIndex === currentPlayerIndex) {
+          currentPlayerIndex %= players.length;
+        }
+        updateTurnInfo();
+        renderAllViews();
+      } else {
+        alert("Неверный пароль.");
+      }
+    }
+
+    document.addEventListener("keydown", function(e) {
+      switch(e.key) {
+        case "ArrowUp": movePlayer("up"); break;
+        case "ArrowDown": movePlayer("down"); break;
+        case "ArrowLeft": movePlayer("left"); break;
+        case "ArrowRight": movePlayer("right"); break;
+      }
+    });
+
+    function movePlayer(direction) {
+      const activePlayer = players[currentPlayerIndex];
+      let origX = activePlayer.x, origY = activePlayer.y;
+      let newX = origX, newY = origY;
+      const currentCell = maze[origY][origX];
+      if (direction === "up" && !currentCell.walls.top) newY--;
+      else if (direction === "down" && !currentCell.walls.bottom) newY++;
+      else if (direction === "left" && !currentCell.walls.left) newX--;
+      else if (direction === "right" && !currentCell.walls.right) newX++;
+      if (newX < 0 || newX >= mazeWidth || newY < 0 || newY >= mazeHeight) return;
+      const targetCell = maze[newY][newX];
+      if ((targetCell.door || (newX === mazeWidth - 1 && newY === mazeHeight - 1))
+          && !targetCell.hacked && !activePlayer.doorHacked) {
+        triggerDoorHack(targetCell, origX, origY);
+        return;
+      }
+      activePlayer.x = newX;
+      activePlayer.y = newY;
+      activePlayer.movesLeft--;
+      renderAllViews();
+      if (activePlayer.movesLeft <= 0) {
+        activePlayer.movesLeft = activePlayer.moveRange;
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      }
+      updateTurnInfo();
+    }
+
+    function showModal(content) {
+      document.getElementById("modal-content").innerHTML = content;
+      document.getElementById("modal").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+      renderAllViews();
+    }
+    function restartGame() {
+      location.reload();
+    }
+
+    function triggerDoorHack(targetCell, origX, origY) {
+      let html = `<h2>Взлом двери</h2>
+                  <p>Нажмите на круг, когда стрелка окажется в пределах метки!</p>
+                  <canvas id="doorHackCanvas" width="300" height="300"></canvas>
+                  <p id="doorHackStatus"></p>`;
+      showModal(html);
+      startDoorHackMinigame(targetCell, origX, origY);
+    }
+
+    function startDoorHackMinigame(targetCell, origX, origY) {
+      const canvas = document.getElementById("doorHackCanvas");
+      const ctx = canvas.getContext("2d");
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = 120;
+      let dialAngle = 0;
+      const rotationSpeed = 0.05;
+      const tolerance = 0.2;
+      const markerAngle = Math.random() * 2 * Math.PI;
+      
+      let animationId;
+      function drawLock() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        const markerX = centerX + radius * Math.cos(markerAngle);
+        const markerY = centerY + radius * Math.sin(markerAngle);
+        ctx.lineTo(markerX, markerY);
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        const dialX = centerX + radius * Math.cos(dialAngle);
+        const dialY = centerY + radius * Math.sin(dialAngle);
+        ctx.lineTo(dialX, dialY);
+        ctx.strokeStyle = "lime";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      
+      function animate() {
+        dialAngle += rotationSpeed;
+        drawLock();
+        animationId = requestAnimationFrame(animate);
+      }
+      animate();
+      
+      canvas.addEventListener("click", onCanvasClick);
+      function onCanvasClick() {
+        cancelAnimationFrame(animationId);
+        let diff = Math.abs(dialAngle % (2 * Math.PI) - markerAngle);
+        if (diff > Math.PI) diff = 2 * Math.PI - diff;
+        const statusEl = document.getElementById("doorHackStatus");
+        const activePlayer = players[currentPlayerIndex];
+        if (diff < tolerance) {
+          statusEl.innerText = "Успех! Дверь вскрыта.";
+          if (activePlayer.x === mazeWidth - 1 && activePlayer.y === mazeHeight - 1)
+            activePlayer.doorHacked = true;
+          else
+            targetCell.hacked = true;
+          activePlayer.x = targetCell.x;
+          activePlayer.y = targetCell.y;
+          activePlayer.movesLeft--;
+          setTimeout(() => {
+            closeModal();
+            renderAllViews();
+            updateTurnInfo();
+          }, 1000);
+        } else {
+          statusEl.innerText = "Неудача! Дверь остается закрытой.";
+          setTimeout(() => {
+            closeModal();
+          }, 1000);
+        }
+      }
+    }
+
+    function updateTurnInfo() {
+      const activePlayer = players[currentPlayerIndex];
+      document.getElementById("turnInfo").innerText = `Ход: ${activePlayer.name} (Осталось ходов: ${activePlayer.movesLeft})`;
+    }
+
+    function updatePlayersList() {
+      const listDiv = document.getElementById("playersList");
+      listDiv.innerHTML = "Игроки:";
+      players.forEach((p, i) => {
+        let span = document.createElement("span");
+        span.innerText = p.name;
+        if (gmPlayer) {
+          span.onclick = () => { gmKickPlayer(i); };
+        }
+        listDiv.appendChild(span);
+      });
+    }
+
+    function renderAllViews() {
+      renderPlayerMaze();
+      updatePlayersList();
+    }
+
+    function gmKickPlayer(playerIndex) {
+      let pwd = prompt("Введите пароль:");
       if (pwd === "Сэра") {
         alert(`Игрок ${players[playerIndex].name} выбит из игры.`);
         players.splice(playerIndex, 1);
